@@ -1,0 +1,406 @@
+
+<Window x:Class="VideoProcessor.VideoProcessingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CS Compressor"
+        Height="760"
+        Width="1050"
+        MinHeight="600"
+        MinWidth="850"
+        Icon="frameworks/CSCompressor.ico"
+        Background="#F3F4F6">
+
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,4,0,10"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="5,3"/>
+            <Setter Property="Margin" Value="0,4,0,10"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="12,3"/>
+            <Setter Property="Margin" Value="0,4,0,10"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="FieldTitle">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#374151"/>
+        </Style>
+
+        <Style TargetType="GroupBox">
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,15">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock Text="CS Compressor"
+                           FontSize="26"
+                           FontWeight="Bold"
+                           Foreground="#111827"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Configuration -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+
+                    <GroupBox Header="Files">
+                        <StackPanel>
+                            <TextBlock Text="Input file"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="pathTB"
+                                         IsReadOnly="True"
+                                         Margin="0,4,8,10"/>
+
+                                <Button x:Name="BrowseButton"
+                                        Grid.Column="1"
+                                        Content="Browse..."
+                                        Margin="0,4,0,10"/>
+                            </Grid>
+
+                            <TextBlock Text="Output file"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="OutputPathTB"
+                                         IsReadOnly="True"
+                                         Margin="0,4,8,10"/>
+
+                                <Button x:Name="OutputBrowseButton"
+                                        Grid.Column="1"
+                                        Content="Browse..."
+                                        Margin="0,4,0,10"/>
+                            </Grid>
+
+                            <TextBlock Text="Output format"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <ComboBox x:Name="OutputFormatCB" SelectionChanged="OutputFormatChanged" SelectedIndex="0">
+                                <ComboBoxItem Content="MP4"/>
+                                <ComboBoxItem Content="MOV"/>
+                                <ComboBoxItem Content="GIF"/>
+                                <ComboBoxItem Content="MKV"/>
+                                <ComboBoxItem Content="WebM"/>
+                                <ComboBoxItem Content="OGG"/>
+                                <ComboBoxItem Content="AAC"/>
+                                <ComboBoxItem Content="WAV"/>
+                                <ComboBoxItem Content="FLAC"/>
+                                <ComboBoxItem Content="MP3"/>
+                            </ComboBox>
+
+
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Video encoder -->
+                    <GroupBox Header="Video Encoding">
+                        <StackPanel>
+
+                            <TextBlock Text="Video encoder"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <ComboBox x:Name="VideoEncoderCB"
+                                      SelectionChanged="VideoEncoderChanged"
+                                      SelectedIndex="0">
+                                <ComboBoxItem Content="-"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Rate control"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <ComboBox x:Name="VideoRateControlCB" SelectedIndex="0">
+                                <ComboBoxItem Content="CBR"/>
+                                <ComboBoxItem Content="VBR"/>
+                                <ComboBoxItem Content="CQP"/>
+                                <ComboBoxItem Content="CQ"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Video bitrate"
+                                       x:Name="VideoBitrateTitle"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <TextBox x:Name="VideoBitrateTB"/>
+
+                            <TextBlock Text="CQ / CQP constant"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <TextBox x:Name="CQTB"/>
+
+                            <TextBlock Text="Minimum video bitrate"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <TextBox x:Name="MinimumVideoBitrateTB"/>
+
+                            <TextBlock Text="Maximum video bitrate"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <TextBox x:Name="MaximumVideoBitrateTB"/>
+
+                            <TextBlock Text="Buffer size"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <TextBox x:Name="BufferSizeTB"/>
+
+                            <TextBlock Text="Encoding speed"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <ComboBox x:Name="VideoEncodingSpeedCB"/>
+
+                            <TextBlock Text="Encoding effort (CPU-Used)"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <ComboBox x:Name="CPUUsedCB">
+                                <ComboBoxItem Content="Level 1"/>
+                                <ComboBoxItem Content="Level 2"/>
+                                <ComboBoxItem Content="Level 3"/>
+                                <ComboBoxItem Content="Level 4"/>
+                                <ComboBoxItem Content="Level 5"/>
+                                <ComboBoxItem Content="Level 6"/>
+                                <ComboBoxItem Content="Level 7"/>
+                            </ComboBox>
+
+
+                        </StackPanel>
+                    </GroupBox>
+
+                </StackPanel>
+
+                <!-- RIGHT COLUMN -->
+                <StackPanel Grid.Column="2">
+
+                    <!-- Video filters -->
+                    <GroupBox Header="Video Filters">
+                        <StackPanel>
+
+                            <TextBlock Text="Resolution"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="WidthTB"/>
+
+                                <TextBlock Grid.Column="1"
+                                           Text="×"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0"/>
+
+                                <TextBox x:Name="HeightTB"
+                                         Grid.Column="2"/>
+                            </Grid>
+
+                            <TextBlock Text="Framerate"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <TextBox x:Name="FramerateTB"/>
+
+                            <TextBlock Text="Scaling algorithm"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <ComboBox x:Name="VideoScalingFlagCB" SelectedIndex="4">
+                                <ComboBoxItem Content="fast_bilinear"/>
+                                <ComboBoxItem Content="bilinear"/>
+                                <ComboBoxItem Content="bicubic"/>
+                                <ComboBoxItem Content="neighbor"/>
+                                <ComboBoxItem Content="area"/>
+                                <ComboBoxItem Content="bicublin"/>
+                                <ComboBoxItem Content="gauss"/>
+                                <ComboBoxItem Content="sinc"/>
+                                <ComboBoxItem Content="lanczos"/>
+                                <ComboBoxItem Content="spline"/>
+                            </ComboBox>
+
+
+                            <CheckBox x:Name="AccurateColorGifCB"
+                                      Content="Accurate GIF colors"
+                                      IsEnabled="false"
+                                      Margin="0,5,0,8"/>
+
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Audio -->
+                    <GroupBox Header="Audio Encoding">
+                        <StackPanel>
+
+                            <TextBlock Text="Audio encoder"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <ComboBox x:Name="AudioEncoderCB">
+                                <ComboBoxItem Content="No encoding"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Audio bitrate"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <TextBox x:Name="AudioBitrateTB"/>
+
+                            <TextBlock Text="Audio channels"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <ComboBox x:Name="AudioChannelAmountCB">
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="2"/>
+                            </ComboBox>
+
+                            <CheckBox x:Name="DisableAudioCB"
+                                      Content="Disable audio"
+                                      Margin="0,5,0,8"/>
+
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Trims">
+                        <StackPanel>
+
+                            <TextBlock Text="Start time"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="StartHourTB"/>
+                                <TextBlock Grid.Column="1" Text=":"
+                                           VerticalAlignment="Center"
+                                           Margin="5,0"/>
+
+                                <TextBox x:Name="StartMinuteTB"
+                                         Grid.Column="2"/>
+                                <TextBlock Grid.Column="3" Text=":"
+                                           VerticalAlignment="Center"
+                                           Margin="5,0"/>
+
+                                <TextBox x:Name="StartSecondTB"
+                                         Grid.Column="4"/>
+                            </Grid>
+
+                            <TextBlock Text="End time"
+                                       Style="{StaticResource FieldTitle}"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="EndHourTB"/>
+                                <TextBlock Grid.Column="1" Text=":"
+                                           VerticalAlignment="Center"
+                                           Margin="5,0"/>
+
+                                <TextBox x:Name="EndMinuteTB"
+                                         Grid.Column="2"/>
+                                <TextBlock Grid.Column="3" Text=":"
+                                           VerticalAlignment="Center"
+                                           Margin="5,0"/>
+
+                                <TextBox x:Name="EndSecondTB"
+                                         Grid.Column="4"/>
+                            </Grid>
+
+                        </StackPanel>
+                    </GroupBox>
+                    <!-- Metadata and stream options -->
+                    <GroupBox Header="Other Options">
+                        <StackPanel>
+
+                            <CheckBox x:Name="CopyMetaDataCB"
+                                      Content="Copy metadata"
+                                      IsChecked = "true"
+                                      Margin="0,5,0,8"/>
+
+                            <CheckBox x:Name="EnableLog"
+                                      Content="Enable log"
+                                      Margin="0,5,0,8"/>
+
+                        </StackPanel>
+                    </GroupBox>
+
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Bottom action bar -->
+        <Border Grid.Row="2"
+                BorderBrush="#D1D5DB"
+                BorderThickness="0,1,0,0"
+                Padding="0,12,0,0"
+                Margin="0,8,0,0">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="Go"
+                        Grid.Column="1"
+                        Content="Compress"
+                        Height="40"
+                        FontSize="15"
+                        FontWeight="Bold"
+                        Background="#021775"
+                        Foreground="white"
+                        BorderThickness="0"
+                        Margin="0"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>
