@@ -75,7 +75,30 @@ public class FFmpegArg
     public string? audioChannelAmount;
     public bool? copyMetaData;
     public bool? defaultOnError;
-
+    public static supportedVideoEncoders? StringToVideoEncoder(String target)
+    {
+        if (Enum.TryParse<supportedVideoEncoders>(target, out supportedVideoEncoders result))
+        {
+            return result;
+        }
+        return null;
+    }
+    public static supportedAudioEncoders? StringToAudioEncoder(String target)
+    {
+        if (Enum.TryParse<supportedAudioEncoders>(target, out supportedAudioEncoders result))
+        {
+            return result;
+        }
+        return null;
+    }
+    public static supportedOutputFormats? StringToOutputFormat(String target)
+    {
+        if (Enum.TryParse<supportedOutputFormats>(target, out supportedOutputFormats result))
+        {
+            return result;
+        }
+        return null;
+    }
     public static bool? CheckVideoCompatibility(supportedVideoEncoders videoEncoder, supportedOutputFormats outputFormat, string? ffprobePathArg=null, string? inputPathArg=null)
     {
         if (videoEncoder == supportedVideoEncoders.copy)

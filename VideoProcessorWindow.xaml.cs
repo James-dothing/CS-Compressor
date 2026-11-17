@@ -21,17 +21,6 @@ namespace VideoProcessor
             path = patharg;
             pathTB.Text = patharg;
         }
-        private void ClearAndAdd(ComboBox target, string[] array)
-        {
-            if (isInit)
-            {
-                target.Items.Clear();
-                foreach (string a in array)
-                {
-                    target.Items.Add(a);
-                }   
-            }
-        }
 
         public void UpdateVideoEncoders(string[] finalList)
         {
@@ -40,40 +29,100 @@ namespace VideoProcessor
         }
         public void ReplaceOutput()
         {
-            if (isInit)
+            if (!isInit) {return;}
+        
+            string outputFormat = OutputFormatCB.SelectedItem?.ToString() ?? "";
+            // _ = MessageBoxAPI.DebugAsync(outputFormat);
+            // MessageBoxAPI.Debug(outputFormat.Split(": ")[1]);
+            if (outputFormat.Split(": ").Length != 0)
             {
-                string outputFormat = OutputFormatCB.SelectedItem?.ToString() ?? "";
-                // MessageBoxAPI.Debug(outputFormat.Split(": ")[1]);
-                if (outputFormat.Split(": ").Length == 0) {return;}
-                if (Enum.TryParse<FFmpegArg.supportedOutputFormats>(outputFormat.Split(": ")[1], out FFmpegArg.supportedOutputFormats a))
+                 //lowk gave up on naming variable ;; uses too much brain power (:
+                FFmpegArg.supportedOutputFormats? a = FFmpegArg.StringToOutputFormat(outputFormat.Split(": ")[1]);
+                // _ = MessageBoxAPI.DebugAsync(a.ToString() ?? "NULL");
+                if (a!=null)
                 {
-                    
-                    VideoEncoderCB.Items.Clear();
-                    foreach (string b in EncoderArray) //lowk gave up on naming variable ;; uses too much brain power (:
+                    switch (a.ToString()) //using swtich so it's more readable
                     {
-                        if (Enum.TryParse<FFmpegArg.supportedVideoEncoders>(b, out FFmpegArg.supportedVideoEncoders c))
-                        {
-                            if (FFmpegArg.CheckVideoCompatibility(c, a) ?? false)
-                            {
-                                // _ = MessageBoxAPI.DebugAsync(b);
-                                VideoEncoderCB.Items.Add(b);
-                            }   
-                        }
-                    }
-                    VideoEncoderCB.Items.Add("No encoding");
-                    VideoEncoderCB.SelectedIndex = 0;
+                        case not ("AAC" or "WAV" or "OGG" or "MP3" or "FLAC"):
 
-                    switch (outputFormat.Split(": ")[1])
-                    {
-                        case ("GIF"):
-                            AccurateColorGifCB.IsEnabled = true;
+                            VideoEncoderCB.IsEnabled = true;
+                            VideoRateControlCB.IsEnabled = true;
+                            VideoBitrateTB.IsEnabled = true;
+                            CQTB.IsEnabled = true;
+                            MinimumVideoBitrateTB.IsEnabled = true;
+                            MaximumVideoBitrateTB.IsEnabled = true;
+                            WidthTB.IsEnabled = true;
+                            HeightTB.IsEnabled = true;
+                            FramerateTB.IsEnabled = true;
+                            VideoScalingFlagCB.IsEnabled = true;
+                            BufferSizeTB.IsEnabled = true;
+                            VideoEncodingSpeedCB.IsEnabled = true;
+                            CPUUsedCB.IsEnabled = true;
+                            AccurateColorGifCB.IsEnabled = false;
+
+                            VideoEncoderCB.Items.Clear();
+                            foreach (string b in EncoderArray)
+                            {
+                                FFmpegArg.supportedVideoEncoders? c = FFmpegArg.StringToVideoEncoder(b);
+                                if (c!=null)
+                                {
+                                    if (FFmpegArg.CheckVideoCompatibility((FFmpegArg.supportedVideoEncoders)c, (FFmpegArg.supportedOutputFormats)a) ?? false)
+                                    {
+                                        // _ = MessageBoxAPI.DebugAsync(b);
+                                        VideoEncoderCB.Items.Add(b);
+                                    }
+                                }
+                            }
+                            VideoEncoderCB.Items.Add("No encoding");
+                            VideoEncoderCB.SelectedIndex = 0;
+                            switch (a.ToString())
+                            {
+                                case ("GIF"):
+                                    AccurateColorGifCB.IsEnabled = true;
+                                    AccurateColorGifCB.IsChecked = true;
+                                    DisableAudioCB.IsEnabled = false;
+                                    DisableAudioCB.IsChecked = true;
+                                    AudioEncoderCB.IsEnabled = false;
+                                    AudioBitrateTB.IsEnabled = false;
+                                    AudioChannelAmountCB.IsEnabled = false;
+                                    break;
+                                default:
+                                    AccurateColorGifCB.IsEnabled = false;
+                                    AccurateColorGifCB.IsChecked = false;
+                                    if (!DisableAudioCB.IsEnabled) {DisableAudioCB.IsChecked = false;}
+                                    DisableAudioCB.IsEnabled = true;
+                                    AudioEncoderCB.IsEnabled = true;
+                                    AudioBitrateTB.IsEnabled = true;
+                                    AudioChannelAmountCB.IsEnabled = true;
+                                    break;
+                            }
                             break;
                         default:
+                            VideoEncoderCB.IsEnabled = false;
+                            VideoRateControlCB.IsEnabled = false;
+                            VideoBitrateTB.IsEnabled = false;
+                            CQTB.IsEnabled = false;
+                            MinimumVideoBitrateTB.IsEnabled = false;
+                            MaximumVideoBitrateTB.IsEnabled = false;
+                            WidthTB.IsEnabled = false;
+                            HeightTB.IsEnabled = false;
+                            FramerateTB.IsEnabled = false;
+                            VideoScalingFlagCB.IsEnabled = false;
+                            BufferSizeTB.IsEnabled = false;
+                            VideoEncodingSpeedCB.IsEnabled = false;
+                            CPUUsedCB.IsEnabled = false;
                             AccurateColorGifCB.IsEnabled = false;
+
+                            if (!DisableAudioCB.IsEnabled) {DisableAudioCB.IsChecked = false;}
+                            DisableAudioCB.IsEnabled = true;
+                            AudioEncoderCB.IsEnabled = true;
+                            AudioBitrateTB.IsEnabled = true;
+                            AudioChannelAmountCB.IsEnabled = true;
                             break;
                     }
                 }
             }
+        
         }
         private void OutputFormatChanged(object sender, SelectionChangedEventArgs e)
         {

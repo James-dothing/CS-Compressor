@@ -161,7 +161,8 @@
                             <TextBlock Text="Video bitrate"
                                        x:Name="VideoBitrateTitle"
                                        Style="{StaticResource FieldTitle}"/>
-
+                            <TextBlock Text="M, K suffix ex. 10M = 10 Mb/s, 128K = 128 Kb/s "
+                                        Style="{StaticResource FieldTitle}"/>
                             <TextBox x:Name="VideoBitrateTB"/>
 
                             <TextBlock Text="CQ / CQP constant"
@@ -259,7 +260,7 @@
 
 
                             <CheckBox x:Name="AccurateColorGifCB"
-                                      Content="Accurate GIF colors"
+                                      Content="Accurate GIF color (GIF format only)"
                                       IsEnabled="false"
                                       Margin="0,5,0,8"/>
 
@@ -327,6 +328,7 @@
                                          Grid.Column="4"/>
                             </Grid>
 
+                            <!-- lowk gave up on commenting lolll -->
                             <TextBlock Text="End time"
                                        Style="{StaticResource FieldTitle}"/>
 
