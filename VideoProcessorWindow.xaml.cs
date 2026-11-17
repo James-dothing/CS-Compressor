@@ -1,6 +1,5 @@
 // using System.IO;
-using System.Drawing.Imaging;
-using System.Net.Http.Headers;
+using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -34,7 +33,7 @@ namespace VideoProcessor
             string outputFormat = OutputFormatCB.SelectedItem?.ToString() ?? "";
             // _ = MessageBoxAPI.DebugAsync(outputFormat);
             // MessageBoxAPI.Debug(outputFormat.Split(": ")[1]);
-            if (outputFormat.Split(": ").Length != 0)
+            if (outputFormat.Split(": ").Length > 1)
             {
                  //lowk gave up on naming variable ;; uses too much brain power (:
                 FFmpegArg.supportedOutputFormats? a = FFmpegArg.StringToOutputFormat(outputFormat.Split(": ")[1]);
@@ -127,26 +126,27 @@ namespace VideoProcessor
         private void OutputFormatChanged(object sender, SelectionChangedEventArgs e)
         {
             ReplaceOutput();
+            OutputPathTB.Text = "";
         }
         private void VideoEncoderChanged(object sender, SelectionChangedEventArgs e)
         {
-            // if (isInit)
-            // {
-            //     FFmpegAPI.CheckFFmpeg();
-            //     ComboBox VE = (ComboBox)sender;
-            //     String? item = (VE.SelectedItem as ComboBoxItem)?.Content.ToString();
-            //     if (String.IsNullOrEmpty(item)){return;}
-            //     else if (item == "No encoding")
-            //     {
-            //         VideoBitrateTB.IsReadOnly = true;
-            //         VideoBitrateTB.Opacity = 0.4d;
-            //         VideoBitrateTitle.Opacity = 0.4d;
-            //         //VideoQualityTitle.Opacity = 0.4d;
-            //         //VideoQualityCB.IsEnabled = false;
-            //     }
-            // }
             
         }
-        
+        private void OutputBrowse(object sender, RoutedEventArgs e)
+        {
+            string o = OutputFormatCB.SelectedItem?.ToString() ?? "";
+            if (o == "")
+            {
+                MessageBoxAPI.Debug("Please select a video format output first!");
+                return;
+            }
+            o = o.Split(": ").Length <= 1 ? "" : o.Split(": ")[1] ;
+            SaveFileDialog dialog = new SaveFileDialog{Title = "Output Path", Filter = $"{o} files (*.{o.ToLower()})|*.{o.ToLower()}"};
+
+            if (dialog.ShowDialog() == true)
+            {
+                OutputPathTB.Text = dialog.FileName;
+            }
+        }
     }
 }

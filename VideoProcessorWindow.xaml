@@ -61,7 +61,6 @@
             </StackPanel>
         </Grid>
 
-        <!-- Configuration -->
         <ScrollViewer Grid.Row="1"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
@@ -112,13 +111,14 @@
                                 <Button x:Name="OutputBrowseButton"
                                         Grid.Column="1"
                                         Content="Browse..."
+                                        Click="OutputBrowse"
                                         Margin="0,4,0,10"/>
                             </Grid>
 
                             <TextBlock Text="Output format"
                                        Style="{StaticResource FieldTitle}"/>
 
-                            <ComboBox x:Name="OutputFormatCB" SelectionChanged="OutputFormatChanged" SelectedIndex="0">
+                            <ComboBox x:Name="OutputFormatCB" SelectionChanged="OutputFormatChanged">
                                 <ComboBoxItem Content="MP4"/>
                                 <ComboBoxItem Content="MOV"/>
                                 <ComboBoxItem Content="GIF"/>
@@ -135,7 +135,6 @@
                         </StackPanel>
                     </GroupBox>
 
-                    <!-- Video encoder -->
                     <GroupBox Header="Video Encoding">
                         <StackPanel>
 
@@ -209,10 +208,8 @@
 
                 </StackPanel>
 
-                <!-- RIGHT COLUMN -->
                 <StackPanel Grid.Column="2">
 
-                    <!-- Video filters -->
                     <GroupBox Header="Video Filters">
                         <StackPanel>
 
@@ -267,7 +264,6 @@
                         </StackPanel>
                     </GroupBox>
 
-                    <!-- Audio -->
                     <GroupBox Header="Audio Encoding">
                         <StackPanel>
 
@@ -328,7 +324,6 @@
                                          Grid.Column="4"/>
                             </Grid>
 
-                            <!-- lowk gave up on commenting lolll -->
                             <TextBlock Text="End time"
                                        Style="{StaticResource FieldTitle}"/>
 
@@ -358,7 +353,6 @@
 
                         </StackPanel>
                     </GroupBox>
-                    <!-- Metadata and stream options -->
                     <GroupBox Header="Other Options">
                         <StackPanel>
 
@@ -378,7 +372,6 @@
             </Grid>
         </ScrollViewer>
 
-        <!-- Bottom action bar -->
         <Border Grid.Row="2"
                 BorderBrush="#D1D5DB"
                 BorderThickness="0,1,0,0"
