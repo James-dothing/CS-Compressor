@@ -117,12 +117,13 @@ public class FFmpegArg
             case (supportedOutputFormats.MOV):
                 switch (videoEncoder.ToString())
                 {
-                    case not ("libaom_av1" or "libvpx" or "libvpx_vp9" or "av1_nvenc" or "av1_amf" or "av1_qsv"):
+                    case not ("libaom_av1" or "libvpx" or "libvpx_vp9" or "av1_nvenc" or "av1_amf" or "av1_qsv" or "gif"):
                         return true;
                 }
                 break;
             case (supportedOutputFormats.MKV):
-                return true; //MKV support every video encoder :D
+                if (videoEncoder != supportedVideoEncoders.gif){return true;}
+                break;
             case (supportedOutputFormats.WebM):
                 switch (videoEncoder)
                 {
