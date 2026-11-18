@@ -309,18 +309,18 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBox x:Name="StartHourTB"/>
+                                <TextBox x:Name="StartHourTB" Text="00"/>
                                 <TextBlock Grid.Column="1" Text=":"
                                            VerticalAlignment="Center"
                                            Margin="5,0"/>
 
-                                <TextBox x:Name="StartMinuteTB"
+                                <TextBox x:Name="StartMinuteTB" Text="00"
                                          Grid.Column="2"/>
                                 <TextBlock Grid.Column="3" Text=":"
                                            VerticalAlignment="Center"
                                            Margin="5,0"/>
 
-                                <TextBox x:Name="StartSecondTB"
+                                <TextBox x:Name="StartSecondTB" Text="00"
                                          Grid.Column="4"/>
                             </Grid>
 
@@ -336,18 +336,18 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBox x:Name="EndHourTB"/>
+                                <TextBox x:Name="EndHourTB" Text="--"/>
                                 <TextBlock Grid.Column="1" Text=":"
                                            VerticalAlignment="Center"
                                            Margin="5,0"/>
 
-                                <TextBox x:Name="EndMinuteTB"
+                                <TextBox x:Name="EndMinuteTB" Text="--"
                                          Grid.Column="2"/>
                                 <TextBlock Grid.Column="3" Text=":"
                                            VerticalAlignment="Center"
                                            Margin="5,0"/>
 
-                                <TextBox x:Name="EndSecondTB"
+                                <TextBox x:Name="EndSecondTB" Text="--"
                                          Grid.Column="4"/>
                             </Grid>
 

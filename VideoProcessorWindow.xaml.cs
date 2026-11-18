@@ -30,13 +30,12 @@ namespace VideoProcessor
         {
             if (!isInit) {return;}
         
-            string outputFormat = OutputFormatCB.SelectedItem?.ToString() ?? "";
+            string? outputFormat = QOL.GetStringFromComboBox(OutputFormatCB);
             // _ = MessageBoxAPI.DebugAsync(outputFormat);
-            // MessageBoxAPI.Debug(outputFormat.Split(": ")[1]);
-            if (outputFormat.Split(": ").Length > 1)
+            if (outputFormat != null)
             {
                  //lowk gave up on naming variable ;; uses too much brain power (:
-                FFmpegArg.supportedOutputFormats? a = FFmpegArg.StringToOutputFormat(outputFormat.Split(": ")[1]);
+                FFmpegArg.supportedOutputFormats? a = FFmpegArg.StringToOutputFormat(outputFormat);
                 // _ = MessageBoxAPI.DebugAsync(a.ToString() ?? "NULL");
                 if (a!=null)
                 {
@@ -134,13 +133,12 @@ namespace VideoProcessor
         }
         private void OutputBrowse(object sender, RoutedEventArgs e)
         {
-            string o = OutputFormatCB.SelectedItem?.ToString() ?? "";
-            if (o == "")
+            string? o = QOL.GetStringFromComboBox(OutputFormatCB);
+            if (o == null)
             {
                 MessageBoxAPI.Debug("Please select a video format output first!");
                 return;
             }
-            o = o.Split(": ").Length <= 1 ? "" : o.Split(": ")[1] ;
             SaveFileDialog dialog = new SaveFileDialog{Title = "Output Path", Filter = $"{o} files (*.{o.ToLower()})|*.{o.ToLower()}"};
 
             if (dialog.ShowDialog() == true)
