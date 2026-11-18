@@ -150,7 +150,7 @@
                             <TextBlock Text="Rate control"
                                        Style="{StaticResource FieldTitle}"/>
 
-                            <ComboBox x:Name="VideoRateControlCB" SelectedIndex="0">
+                            <ComboBox x:Name="VideoRateControlCB" SelectedIndex="0" SelectionChanged="RateControlChanged">
                                 <ComboBoxItem Content="CBR"/>
                                 <ComboBoxItem Content="VBR"/>
                                 <ComboBoxItem Content="CQP"/>

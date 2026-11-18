@@ -13,6 +13,7 @@ namespace VideoProcessor
         {
             InitializeComponent();
             isInit = true;
+            RateControlHandler();
         }
         private string path = "";
         public void SetPath(string patharg)
@@ -20,11 +21,49 @@ namespace VideoProcessor
             path = patharg;
             pathTB.Text = patharg;
         }
-
         public void UpdateVideoEncoders(string[] finalList)
         {
             EncoderArray = finalList; //incase some weird thing happen
             ReplaceOutput();
+        }
+        public void RateControlHandler()
+        {
+            if (!isInit) {return;}
+            switch (QOL.GetStringFromComboBox(VideoRateControlCB))
+            {
+                case ("CBR"):
+                    VideoBitrateTB.IsEnabled = true;
+                    CQTB.IsEnabled = false;
+                    MinimumVideoBitrateTB.IsEnabled = false;
+                    MaximumVideoBitrateTB.IsEnabled = false;
+                    BufferSizeTB.IsEnabled = true;
+                    break;
+                case ("VBR"):
+                    VideoBitrateTB.IsEnabled = true;
+                    CQTB.IsEnabled = false;
+                    MinimumVideoBitrateTB.IsEnabled = true;
+                    MaximumVideoBitrateTB.IsEnabled = true;
+                    BufferSizeTB.IsEnabled = true;
+                    break;
+                case ("CQP"):
+                    VideoBitrateTB.IsEnabled = false;
+                    CQTB.IsEnabled = true;
+                    MinimumVideoBitrateTB.IsEnabled = false;
+                    MaximumVideoBitrateTB.IsEnabled = false;
+                    BufferSizeTB.IsEnabled = false;
+                    break;
+                case ("CQ"):
+                    VideoBitrateTB.IsEnabled = false;
+                    CQTB.IsEnabled = true;
+                    MinimumVideoBitrateTB.IsEnabled = false;
+                    MaximumVideoBitrateTB.IsEnabled = false;
+                    BufferSizeTB.IsEnabled = false;
+                    break;
+                default:
+                    VideoRateControlCB.SelectedIndex = 0;
+                    RateControlHandler();
+                    break;
+            }
         }
         public void ReplaceOutput()
         {
@@ -45,15 +84,11 @@ namespace VideoProcessor
 
                             VideoEncoderCB.IsEnabled = true;
                             VideoRateControlCB.IsEnabled = true;
-                            VideoBitrateTB.IsEnabled = true;
-                            CQTB.IsEnabled = true;
-                            MinimumVideoBitrateTB.IsEnabled = true;
-                            MaximumVideoBitrateTB.IsEnabled = true;
+                            RateControlHandler();
                             WidthTB.IsEnabled = true;
                             HeightTB.IsEnabled = true;
                             FramerateTB.IsEnabled = true;
                             VideoScalingFlagCB.IsEnabled = true;
-                            BufferSizeTB.IsEnabled = true;
                             VideoEncodingSpeedCB.IsEnabled = true;
                             CPUUsedCB.IsEnabled = true;
                             AccurateColorGifCB.IsEnabled = false;
@@ -83,6 +118,13 @@ namespace VideoProcessor
                                     AudioEncoderCB.IsEnabled = false;
                                     AudioBitrateTB.IsEnabled = false;
                                     AudioChannelAmountCB.IsEnabled = false;
+
+                                    VideoRateControlCB.IsEnabled = false;
+                                    VideoBitrateTB.IsEnabled = false;
+                                    CQTB.IsEnabled = false;
+                                    BufferSizeTB.IsEnabled = false;
+                                    MinimumVideoBitrateTB.IsEnabled = false;
+                                    MaximumVideoBitrateTB.IsEnabled = false;
                                     break;
                                 default:
                                     AccurateColorGifCB.IsEnabled = false;
@@ -92,6 +134,9 @@ namespace VideoProcessor
                                     AudioEncoderCB.IsEnabled = true;
                                     AudioBitrateTB.IsEnabled = true;
                                     AudioChannelAmountCB.IsEnabled = true;
+
+                                    VideoRateControlCB.IsEnabled = true;
+                                    RateControlHandler();
                                     break;
                             }
                             break;
@@ -100,13 +145,13 @@ namespace VideoProcessor
                             VideoRateControlCB.IsEnabled = false;
                             VideoBitrateTB.IsEnabled = false;
                             CQTB.IsEnabled = false;
+                            BufferSizeTB.IsEnabled = false;
                             MinimumVideoBitrateTB.IsEnabled = false;
                             MaximumVideoBitrateTB.IsEnabled = false;
                             WidthTB.IsEnabled = false;
                             HeightTB.IsEnabled = false;
                             FramerateTB.IsEnabled = false;
                             VideoScalingFlagCB.IsEnabled = false;
-                            BufferSizeTB.IsEnabled = false;
                             VideoEncodingSpeedCB.IsEnabled = false;
                             CPUUsedCB.IsEnabled = false;
                             AccurateColorGifCB.IsEnabled = false;
@@ -124,12 +169,27 @@ namespace VideoProcessor
         }
         private void OutputFormatChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (!isInit) {return;}
             ReplaceOutput();
             OutputPathTB.Text = "";
         }
         private void VideoEncoderChanged(object sender, SelectionChangedEventArgs e)
         {
-            
+            if (!isInit) {return;}
+            string? a = VideoEncoderCB.SelectedItem?.ToString();
+            if (a==null) {return;}
+            FFmpegArg.supportedVideoEncoders? b = FFmpegArg.StringToVideoEncoder(a);
+            if (b==null) {return;}
+            VideoEncodingSpeedCB.Items.Clear();
+            foreach (FFmpegArg.encodingPresets c in FFmpegArg.GetSupportedEncoderPresets((FFmpegArg.supportedVideoEncoders)b))
+            {
+                VideoEncodingSpeedCB.Items.Add(c.ToString());
+            }
+        }
+        private void RateControlChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!isInit) {return;}
+            RateControlHandler();
         }
         private void OutputBrowse(object sender, RoutedEventArgs e)
         {

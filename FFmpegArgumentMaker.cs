@@ -17,11 +17,10 @@ public class FFmpegArg
     }
     public enum encodingPresets
     {
-        ultrafast, superfast, slower, placebo, //libx264 and libx265
+        ultrafast, superfast, veryfast, faster, fast, medium, slow, veryslow, slower, placebo, //libx264 and libx265
         best, good, realtime, // VP8 and VP9
         p1, p2, p3, p4, p5, p6, p7, // nvidia
-        speed, balanced, quality, // amd
-        veryfast, faster, fast, medium, slow, veryslow // intel and libx264 and libx265
+        speed, balanced, quality // amd
     }
     public enum supportedAudioEncoders
     {
@@ -94,6 +93,14 @@ public class FFmpegArg
     public static supportedOutputFormats? StringToOutputFormat(String target)
     {
         if (Enum.TryParse<supportedOutputFormats>(target, out supportedOutputFormats result))
+        {
+            return result;
+        }
+        return null;
+    }
+    public static encodingPresets? StringToEncoderPreset(String target)
+    {
+        if (Enum.TryParse<encodingPresets>(target, out encodingPresets result))
         {
             return result;
         }
@@ -263,6 +270,96 @@ public class FFmpegArg
     //#####################################################################
     //#####################################################################
 
+    public static encodingPresets[] GetSupportedEncoderPresets(supportedVideoEncoders inputvideoEncoder)
+    {
+        encodingPresets[] result = new encodingPresets[] {};
+        encodingPresets[] presets = Enum.GetValues<encodingPresets>();
+        foreach (encodingPresets p in presets)
+        {
+            if (EncodingPresetCheck(p, inputvideoEncoder) != null)
+            {
+                result = [..result, p];
+            }
+        }
+
+        return result;
+    }
+
+    //#####################################################################
+    //#####################################################################
+    public static string? EncodingPresetCheck(encodingPresets inputEncodingPreset, supportedVideoEncoders inputvideoEncoder, bool crash=false)
+    {
+        string result = "";
+        switch (inputvideoEncoder)
+        {
+            case (supportedVideoEncoders.libx264 or supportedVideoEncoders.libx265):
+                switch (inputEncodingPreset.ToString())
+                {
+                    case ("ultrafast" or "superfast" or "veryfast" or "faster" or "fast" or "medium" or
+                            "slow" or "slower" or "veryslow" or "placebo"):
+                        result += " -preset " + inputEncodingPreset.ToString();
+                        break;
+                    default:
+                        if (!crash) {return null;}
+                        MessageBoxAPI.Error("Libx264 and libx265 does not support your preset,, this error occur while converting ffmpeg arg to string");
+                        return null;
+                }
+                break;
+            case (supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9):
+                switch (inputEncodingPreset)
+                {
+                    case (encodingPresets.best or encodingPresets.good or encodingPresets.realtime):
+                        result += " -deadline " + inputEncodingPreset.ToString();
+                        break;
+                    default:
+                        if (!crash) {return null;}
+                        MessageBoxAPI.Error("VP8 and VP9 does not support your preset,, this error occur while converting ffmpeg arg to string");
+                        return null;
+                }
+                break;
+            case (supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc):
+                switch (inputEncodingPreset.ToString())
+                {
+                    case ("p1" or "p2" or "p3" or "p4" or "p5" or "p6" or "p7"): //bro.
+                        result += " -preset " + inputEncodingPreset.ToString();
+                        break;
+                    default:
+                        if (!crash) {return null;}
+                        MessageBoxAPI.Error("Nvidia encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
+                        return null;
+                }
+                break;
+            case (supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf):
+                switch (inputEncodingPreset)
+                {
+                    case (encodingPresets.speed or encodingPresets.balanced or encodingPresets.quality):
+                        result += " -preset " + inputEncodingPreset.ToString();
+                        break;
+                    default:
+                        if (!crash) {return null;}
+                        MessageBoxAPI.Error("Amd encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
+                        return null;
+                }
+                break;
+            case (supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv):
+                switch (inputEncodingPreset.ToString())
+                {
+                    case ("veryfast" or "faster" or "fast" or "medium" or "slow" or "slower" or "veryslow"):
+                        result += " -preset " + inputEncodingPreset.ToString();
+                        break;
+                    default:
+                        if (!crash) {return null;}
+                        MessageBoxAPI.Error("Intel encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
+                        return null;
+                }
+                break;
+        }
+        return result == "" ? null : result;
+    }
+
+    //#####################################################################
+    //#####################################################################
+
     public override String? ToString()
     {
         string result = " -y"; //saying yes bc the script will check if the output already exists then warns the user
@@ -408,68 +505,7 @@ public class FFmpegArg
 
             if (videoEncodingSpeed!=null)
             {
-                switch (videoEncoder)
-                {
-                    case (supportedVideoEncoders.libx264 or supportedVideoEncoders.libx265):
-                        switch (videoEncodingSpeed)
-                        {
-                            case (encodingPresets.ultrafast or encodingPresets.superfast or encodingPresets.veryfast or
-                                    encodingPresets.faster or encodingPresets.fast or encodingPresets.medium or
-                                    encodingPresets.slow or encodingPresets.slower or encodingPresets.veryslow or encodingPresets.placebo):
-
-                                result += " -preset " + videoEncodingSpeed.ToString();
-                                break;
-                            default:
-                                MessageBoxAPI.Error("Libx264 and libx265 does not support your preset,, this error occur while converting ffmpeg arg to string");
-                                return null;
-                        }
-                        break;
-                    case (supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9):
-                        switch (videoEncodingSpeed)
-                        {
-                            case (encodingPresets.best or encodingPresets.good or encodingPresets.realtime):
-                                result += " -deadline " + videoEncodingSpeed.ToString();
-                                break;
-                            default:
-                                MessageBoxAPI.Error("VP8 and VP9 does not support your preset,, this error occur while converting ffmpeg arg to string");
-                                return null;
-                        }
-                        break;
-                    case (supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc):
-                        switch (videoEncodingSpeed.ToString()) //i just realize i can just do this oh my god
-                        {
-                            case ("p1" or "p2" or "p3" or "p4" or "p5" or "p6" or "p7"): //bro.
-                                result += " -preset " + videoEncodingSpeed.ToString();
-                                break;
-                            default:
-                                MessageBoxAPI.Error("Nvidia encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
-                                return null;
-                        }
-                        break;
-                    case (supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf):
-                        switch (videoEncodingSpeed)
-                        {
-                            case (encodingPresets.speed or encodingPresets.balanced or encodingPresets.quality):
-                                result += " -preset " + videoEncodingSpeed.ToString();
-                                break;
-                            default:
-                                MessageBoxAPI.Error("Amd encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
-                                return null;
-                        }
-                        break;
-                    case (supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv):
-                        switch (videoEncodingSpeed.ToString())
-                        {
-                            case ("veryfast" or "faster" or "fast" or "medium" or "slow" or "slower" or "veryslow"):
-                                result += " -preset " + videoEncodingSpeed.ToString();
-                                break;
-                            default:
-                                MessageBoxAPI.Error("Intel encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
-                                return null;
-                        }
-                        break;
-
-                }
+                result += EncodingPresetCheck((encodingPresets)videoEncodingSpeed, (supportedVideoEncoders)videoEncoder, true);
             }
 
             if (cpuUsed != null)
