@@ -106,6 +106,26 @@ public class FFmpegArg
         }
         return null;
     }
+    public static bool IsFormatVideo(supportedOutputFormats target)
+    {
+        switch (target)
+        {
+            case (supportedOutputFormats.OGG or supportedOutputFormats.AAC or supportedOutputFormats.WAV or supportedOutputFormats.FLAC or supportedOutputFormats.MP3):
+                return false;
+            default:
+                return true;
+        }
+    }
+    public static bool CheckCpuUsedCompatibility(supportedVideoEncoders target)
+    {
+        switch (target)
+        {
+            case (supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9):
+                return true;
+            default:
+                return false;
+        }
+    }
     public static bool? CheckVideoCompatibility(supportedVideoEncoders videoEncoder, supportedOutputFormats outputFormat, string? ffprobePathArg=null, string? inputPathArg=null)
     {
         if (videoEncoder == supportedVideoEncoders.copy)

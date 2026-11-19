@@ -193,13 +193,13 @@
                                        Style="{StaticResource FieldTitle}"/>
 
                             <ComboBox x:Name="CPUUsedCB">
-                                <ComboBoxItem Content="Level 1"/>
-                                <ComboBoxItem Content="Level 2"/>
-                                <ComboBoxItem Content="Level 3"/>
-                                <ComboBoxItem Content="Level 4"/>
-                                <ComboBoxItem Content="Level 5"/>
-                                <ComboBoxItem Content="Level 6"/>
-                                <ComboBoxItem Content="Level 7"/>
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="2"/>
+                                <ComboBoxItem Content="3"/>
+                                <ComboBoxItem Content="4"/>
+                                <ComboBoxItem Content="5"/>
+                                <ComboBoxItem Content="6"/>
+                                <ComboBoxItem Content="7"/>
                             </ComboBox>
 
 

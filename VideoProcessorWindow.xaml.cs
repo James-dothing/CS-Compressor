@@ -78,90 +78,83 @@ namespace VideoProcessor
                 // _ = MessageBoxAPI.DebugAsync(a.ToString() ?? "NULL");
                 if (a!=null)
                 {
-                    switch (a.ToString()) //using swtich so it's more readable
+                    if (FFmpegArg.IsFormatVideo((FFmpegArg.supportedOutputFormats)a))
                     {
-                        case not ("AAC" or "WAV" or "OGG" or "MP3" or "FLAC"):
-
-                            VideoEncoderCB.IsEnabled = true;
-                            VideoRateControlCB.IsEnabled = true;
-                            RateControlHandler();
-                            WidthTB.IsEnabled = true;
-                            HeightTB.IsEnabled = true;
-                            FramerateTB.IsEnabled = true;
-                            VideoScalingFlagCB.IsEnabled = true;
-                            VideoEncodingSpeedCB.IsEnabled = true;
-                            CPUUsedCB.IsEnabled = true;
-                            AccurateColorGifCB.IsEnabled = false;
-
-                            VideoEncoderCB.Items.Clear();
-                            foreach (string b in EncoderArray)
+                        VideoEncoderCB.IsEnabled = true;
+                        VideoRateControlCB.IsEnabled = true;
+                        RateControlHandler();
+                        WidthTB.IsEnabled = true;
+                        HeightTB.IsEnabled = true;
+                        FramerateTB.IsEnabled = true;
+                        VideoScalingFlagCB.IsEnabled = true;
+                        VideoEncodingSpeedCB.IsEnabled = true;
+                        CPUUsedCB.IsEnabled = true;
+                        AccurateColorGifCB.IsEnabled = false;
+                        VideoEncoderCB.Items.Clear();
+                        foreach (string b in EncoderArray)
+                        {
+                            FFmpegArg.supportedVideoEncoders? c = FFmpegArg.StringToVideoEncoder(b);
+                            if (c!=null)
                             {
-                                FFmpegArg.supportedVideoEncoders? c = FFmpegArg.StringToVideoEncoder(b);
-                                if (c!=null)
+                                if (FFmpegArg.CheckVideoCompatibility((FFmpegArg.supportedVideoEncoders)c, (FFmpegArg.supportedOutputFormats)a) ?? false)
                                 {
-                                    if (FFmpegArg.CheckVideoCompatibility((FFmpegArg.supportedVideoEncoders)c, (FFmpegArg.supportedOutputFormats)a) ?? false)
-                                    {
-                                        // _ = MessageBoxAPI.DebugAsync(b);
-                                        VideoEncoderCB.Items.Add(b);
-                                    }
+                                    // _ = MessageBoxAPI.DebugAsync(b);
+                                    VideoEncoderCB.Items.Add(b);
                                 }
                             }
-                            VideoEncoderCB.Items.Add("No encoding");
-                            VideoEncoderCB.SelectedIndex = 0;
-                            switch (a.ToString())
-                            {
-                                case ("GIF"):
-                                    AccurateColorGifCB.IsEnabled = true;
-                                    AccurateColorGifCB.IsChecked = true;
-                                    DisableAudioCB.IsEnabled = false;
-                                    DisableAudioCB.IsChecked = true;
-                                    AudioEncoderCB.IsEnabled = false;
-                                    AudioBitrateTB.IsEnabled = false;
-                                    AudioChannelAmountCB.IsEnabled = false;
-
-                                    VideoRateControlCB.IsEnabled = false;
-                                    VideoBitrateTB.IsEnabled = false;
-                                    CQTB.IsEnabled = false;
-                                    BufferSizeTB.IsEnabled = false;
-                                    MinimumVideoBitrateTB.IsEnabled = false;
-                                    MaximumVideoBitrateTB.IsEnabled = false;
-                                    break;
-                                default:
-                                    AccurateColorGifCB.IsEnabled = false;
-                                    AccurateColorGifCB.IsChecked = false;
-                                    if (!DisableAudioCB.IsEnabled) {DisableAudioCB.IsChecked = false;}
-                                    DisableAudioCB.IsEnabled = true;
-                                    AudioEncoderCB.IsEnabled = true;
-                                    AudioBitrateTB.IsEnabled = true;
-                                    AudioChannelAmountCB.IsEnabled = true;
-
-                                    VideoRateControlCB.IsEnabled = true;
-                                    RateControlHandler();
-                                    break;
-                            }
-                            break;
-                        default:
-                            VideoEncoderCB.IsEnabled = false;
-                            VideoRateControlCB.IsEnabled = false;
-                            VideoBitrateTB.IsEnabled = false;
-                            CQTB.IsEnabled = false;
-                            BufferSizeTB.IsEnabled = false;
-                            MinimumVideoBitrateTB.IsEnabled = false;
-                            MaximumVideoBitrateTB.IsEnabled = false;
-                            WidthTB.IsEnabled = false;
-                            HeightTB.IsEnabled = false;
-                            FramerateTB.IsEnabled = false;
-                            VideoScalingFlagCB.IsEnabled = false;
-                            VideoEncodingSpeedCB.IsEnabled = false;
-                            CPUUsedCB.IsEnabled = false;
-                            AccurateColorGifCB.IsEnabled = false;
-
-                            if (!DisableAudioCB.IsEnabled) {DisableAudioCB.IsChecked = false;}
-                            DisableAudioCB.IsEnabled = true;
-                            AudioEncoderCB.IsEnabled = true;
-                            AudioBitrateTB.IsEnabled = true;
-                            AudioChannelAmountCB.IsEnabled = true;
-                            break;
+                        }
+                        VideoEncoderCB.Items.Add("No encoding");
+                        VideoEncoderCB.SelectedIndex = 0;
+                        switch (a.ToString())
+                        {
+                            case ("GIF"):
+                                AccurateColorGifCB.IsEnabled = true;
+                                AccurateColorGifCB.IsChecked = true;
+                                DisableAudioCB.IsEnabled = false;
+                                DisableAudioCB.IsChecked = true;
+                                AudioEncoderCB.IsEnabled = false;
+                                AudioBitrateTB.IsEnabled = false;
+                                AudioChannelAmountCB.IsEnabled = false;
+                                VideoRateControlCB.IsEnabled = false;
+                                VideoBitrateTB.IsEnabled = false;
+                                CQTB.IsEnabled = false;
+                                BufferSizeTB.IsEnabled = false;
+                                MinimumVideoBitrateTB.IsEnabled = false;
+                                MaximumVideoBitrateTB.IsEnabled = false;
+                                break;
+                            default:
+                                AccurateColorGifCB.IsEnabled = false;
+                                AccurateColorGifCB.IsChecked = false;
+                                if (!DisableAudioCB.IsEnabled) {DisableAudioCB.IsChecked = false;}
+                                DisableAudioCB.IsEnabled = true;
+                                AudioEncoderCB.IsEnabled = true;
+                                AudioBitrateTB.IsEnabled = true;
+                                AudioChannelAmountCB.IsEnabled = true;
+                                VideoRateControlCB.IsEnabled = true;
+                                RateControlHandler();
+                                break;
+                        }
+                    } else
+                    {
+                        VideoEncoderCB.IsEnabled = false;
+                        VideoRateControlCB.IsEnabled = false;
+                        VideoBitrateTB.IsEnabled = false;
+                        CQTB.IsEnabled = false;
+                        BufferSizeTB.IsEnabled = false;
+                        MinimumVideoBitrateTB.IsEnabled = false;
+                        MaximumVideoBitrateTB.IsEnabled = false;
+                        WidthTB.IsEnabled = false;
+                        HeightTB.IsEnabled = false;
+                        FramerateTB.IsEnabled = false;
+                        VideoScalingFlagCB.IsEnabled = false;
+                        VideoEncodingSpeedCB.IsEnabled = false;
+                        CPUUsedCB.IsEnabled = false;
+                        AccurateColorGifCB.IsEnabled = false;
+                        if (!DisableAudioCB.IsEnabled) {DisableAudioCB.IsChecked = false;}
+                        DisableAudioCB.IsEnabled = true;
+                        AudioEncoderCB.IsEnabled = true;
+                        AudioBitrateTB.IsEnabled = true;
+                        AudioChannelAmountCB.IsEnabled = true;
                     }
                 }
             }
@@ -178,12 +171,30 @@ namespace VideoProcessor
             if (!isInit) {return;}
             string? a = VideoEncoderCB.SelectedItem?.ToString();
             if (a==null) {return;}
-            FFmpegArg.supportedVideoEncoders? b = FFmpegArg.StringToVideoEncoder(a);
-            if (b==null) {return;}
-            VideoEncodingSpeedCB.Items.Clear();
-            foreach (FFmpegArg.encodingPresets c in FFmpegArg.GetSupportedEncoderPresets((FFmpegArg.supportedVideoEncoders)b))
+            if (a == "No encoding")
             {
-                VideoEncodingSpeedCB.Items.Add(c.ToString());
+                VideoRateControlCB.IsEnabled = false;
+                VideoBitrateTB.IsEnabled = false;
+                CQTB.IsEnabled = false;
+                MinimumVideoBitrateTB.IsEnabled = false;
+                MaximumVideoBitrateTB.IsEnabled = false;
+                BufferSizeTB.IsEnabled = false;
+                VideoEncodingSpeedCB.IsEnabled = false;
+                CPUUsedCB.IsEnabled = false;
+            } else
+            {
+                VideoRateControlCB.IsEnabled = true;
+                RateControlHandler();
+                VideoEncodingSpeedCB.IsEnabled = true;
+                FFmpegArg.supportedVideoEncoders? b = FFmpegArg.StringToVideoEncoder(a);
+                if (b==null) {return;}
+                VideoEncodingSpeedCB.Items.Clear();
+                foreach (FFmpegArg.encodingPresets c in FFmpegArg.GetSupportedEncoderPresets((FFmpegArg.supportedVideoEncoders)b))
+                {
+                    VideoEncodingSpeedCB.Items.Add(c.ToString());
+                }
+                
+                CPUUsedCB.IsEnabled = FFmpegArg.CheckCpuUsedCompatibility((FFmpegArg.supportedVideoEncoders)b);
             }
         }
         private void RateControlChanged(object sender, SelectionChangedEventArgs e)
