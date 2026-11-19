@@ -116,6 +116,7 @@ public static class ProcessRunner
         try
         {
             process.Start();
+            ProcessTracker.Register(process);
         }
         catch (Exception ex)
         {
@@ -162,6 +163,7 @@ public static class ProcessRunner
         }
 
         int exitCode = wasCancelled ? -1 : process.ExitCode;
+        ProcessTracker.Unregister(process);
 
         return new ProcessExecutionResult(
             ExitCode: exitCode,
