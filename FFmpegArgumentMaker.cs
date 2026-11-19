@@ -1,50 +1,53 @@
-// This is hell, I spent a week making this 500 line shit ass class
 using System.IO;
+using CsCompressor.Core.Models;
+using CsCompressor.Core.Services;
+
 public class FFmpegArg
 {
     public enum supportedVideoEncoders
     {
-        copy, // no encoding!
-        gif, // gif only!
-
-        //libaom_av1 is libaom-av1 and libvpx_vp9 is libvpx-vp9 REMEMBER DO NOT FORGET
+        copy,
+        gif,
         libx264, libx265, libaom_av1, libvpx, libvpx_vp9,
-
-        // hardware varies!!
-        h264_nvenc, hevc_nvenc, av1_nvenc, // nvidia
-        h264_amf, hevc_amf, av1_amf,  // amd
-        h264_qsv, hevc_qsv, av1_qsv, // intel
+        h264_nvenc, hevc_nvenc, av1_nvenc,
+        h264_amf, hevc_amf, av1_amf,
+        h264_qsv, hevc_qsv, av1_qsv
     }
+
     public enum encodingPresets
     {
-        ultrafast, superfast, veryfast, faster, fast, medium, slow, veryslow, slower, placebo, //libx264 and libx265
-        best, good, realtime, // VP8 and VP9
-        p1, p2, p3, p4, p5, p6, p7, // nvidia
-        speed, balanced, quality // amd
+        ultrafast, superfast, veryfast, faster, fast, medium, slow, veryslow, slower, placebo,
+        best, good, realtime,
+        p1, p2, p3, p4, p5, p6, p7,
+        speed, balanced, quality
     }
+
     public enum supportedAudioEncoders
     {
-        copy, // no encoding!
-        aac, // aac
-        flac,  // flac & ogg
-        libmp3lame, // mp3
-        libvorbis, libopus, libspeex, // ogg
-        pcm_s16le, pcm_s24le, pcm_s32le, pcm_f32le, pcm_f64le, pcm_alaw, // wav
+        copy,
+        aac,
+        flac,
+        libmp3lame,
+        libvorbis, libopus, libspeex,
+        pcm_s16le, pcm_s24le, pcm_s32le, pcm_f32le, pcm_f64le, pcm_alaw,
         alac
     }
+
     public enum supportedOutputFormats
     {
         MP4, MOV, GIF, MKV, WebM, OGG, AAC, WAV, FLAC, MP3
-        // .aac is ADTS .mkv is MATROSKA
     }
+
     public enum videoRateControlTypes
     {
         CBR, VBR, CQP, CQ
     }
+
     public enum scalingFlags
     {
-        fast_bilinear,bilinear,bicubic,neighbor,area,bicublin,gauss,sinc,lanczos,spline
+        fast_bilinear, bilinear, bicubic, neighbor, area, bicublin, gauss, sinc, lanczos, spline
     }
+
     public string? ffprobePath;
     public string? inputPath;
     public string? outputPath;
@@ -74,38 +77,42 @@ public class FFmpegArg
     public string? audioChannelAmount;
     public bool? copyMetaData;
     public bool? defaultOnError;
-    public static supportedVideoEncoders? StringToVideoEncoder(String target)
+
+    public static supportedVideoEncoders? StringToVideoEncoder(string target)
     {
-        if (Enum.TryParse<supportedVideoEncoders>(target, out supportedVideoEncoders result))
+        var parsed = CodecHelper.ParseVideoCodec(target);
+        if (parsed.HasValue && Enum.TryParse<supportedVideoEncoders>(parsed.Value.ToString().ToLowerInvariant(), true, out var result))
         {
             return result;
         }
-        return null;
+        return Enum.TryParse<supportedVideoEncoders>(target, true, out var direct) ? direct : null;
     }
-    public static supportedAudioEncoders? StringToAudioEncoder(String target)
+
+    public static supportedAudioEncoders? StringToAudioEncoder(string target)
     {
-        if (Enum.TryParse<supportedAudioEncoders>(target, out supportedAudioEncoders result))
+        var parsed = CodecHelper.ParseAudioCodec(target);
+        if (parsed.HasValue && Enum.TryParse<supportedAudioEncoders>(parsed.Value.ToString().ToLowerInvariant(), true, out var result))
         {
             return result;
         }
-        return null;
+        return Enum.TryParse<supportedAudioEncoders>(target, true, out var direct) ? direct : null;
     }
-    public static supportedOutputFormats? StringToOutputFormat(String target)
+
+    public static supportedOutputFormats? StringToOutputFormat(string target)
     {
-        if (Enum.TryParse<supportedOutputFormats>(target, out supportedOutputFormats result))
+        var parsed = CodecHelper.ParseContainerFormat(target);
+        if (parsed.HasValue && Enum.TryParse<supportedOutputFormats>(parsed.Value.ToString(), true, out var result))
         {
             return result;
         }
-        return null;
+        return Enum.TryParse<supportedOutputFormats>(target, true, out var direct) ? direct : null;
     }
-    public static encodingPresets? StringToEncoderPreset(String target)
+
+    public static encodingPresets? StringToEncoderPreset(string target)
     {
-        if (Enum.TryParse<encodingPresets>(target, out encodingPresets result))
-        {
-            return result;
-        }
-        return null;
+        return Enum.TryParse<encodingPresets>(target, true, out var result) ? result : null;
     }
+
     public static bool IsFormatVideo(supportedOutputFormats target)
     {
         switch (target)
@@ -116,6 +123,7 @@ public class FFmpegArg
                 return true;
         }
     }
+
     public static bool CheckCpuUsedCompatibility(supportedVideoEncoders target)
     {
         switch (target)
@@ -126,503 +134,205 @@ public class FFmpegArg
                 return false;
         }
     }
-    public static bool? CheckVideoCompatibility(supportedVideoEncoders videoEncoder, supportedOutputFormats outputFormat, string? ffprobePathArg=null, string? inputPathArg=null)
+
+    public static bool? CheckVideoCompatibility(supportedVideoEncoders videoEncoder, supportedOutputFormats outputFormat, string? ffprobePathArg = null, string? inputPathArg = null)
     {
+        var format = CodecHelper.ParseContainerFormat(outputFormat.ToString());
+        if (format == null) return false;
+
         if (videoEncoder == supportedVideoEncoders.copy)
         {
-            if (ffprobePathArg == null) {MessageBoxAPI.Error("FFprobe path not found,, this error occur while check video compatibility");return null;}
-            if (inputPathArg == null) {MessageBoxAPI.Error("Input path not found,, this error occur while check video compatibility");return null;}
-            string[] result = ProcessAPI.Start(ffprobePathArg, $" -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 \"{inputPathArg}\"");
-            if (result[1] == "0")
+            if (string.IsNullOrEmpty(ffprobePathArg) || string.IsNullOrEmpty(inputPathArg))
             {
-                switch (result[0])
+                return true;
+            }
+
+            string[] result = ProcessAPI.Start(ffprobePathArg, $"-v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 \"{inputPathArg}\"");
+            if (result[1] == "0" && !string.IsNullOrWhiteSpace(result[0]))
+            {
+                var probedCodec = CodecHelper.ParseVideoCodec(result[0].Trim());
+                if (probedCodec.HasValue)
                 {
-                    case ("h264"):
-                        return CheckVideoCompatibility(supportedVideoEncoders.libx264, outputFormat);
-                    case ("hevc"):
-                        return CheckVideoCompatibility(supportedVideoEncoders.libx265, outputFormat);
-                    case ("av1"):
-                        return CheckVideoCompatibility(supportedVideoEncoders.libaom_av1, outputFormat);
-                    case ("vp8"):
-                        return CheckVideoCompatibility(supportedVideoEncoders.libvpx, outputFormat);
-                    case ("vp9"):
-                        return CheckVideoCompatibility(supportedVideoEncoders.libvpx_vp9, outputFormat);
-                    case ("gif"):
-                        return CheckVideoCompatibility(supportedVideoEncoders.gif, outputFormat);
-                    default:
-                        return false;
+                    return CodecHelper.IsVideoCompatible(probedCodec.Value, format.Value);
                 }
-            } else {return false;}
+            }
+            return true;
         }
 
-        switch (outputFormat)
-        {
-            case (supportedOutputFormats.MP4):
-                switch (videoEncoder)
-                {
-                    case not (supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9 or supportedVideoEncoders.gif):
-                        return true;
-                }
-                break;
-            case (supportedOutputFormats.MOV):
-                switch (videoEncoder.ToString())
-                {
-                    case not ("libaom_av1" or "libvpx" or "libvpx_vp9" or "av1_nvenc" or "av1_amf" or "av1_qsv" or "gif"):
-                        return true;
-                }
-                break;
-            case (supportedOutputFormats.MKV):
-                if (videoEncoder != supportedVideoEncoders.gif){return true;}
-                break;
-            case (supportedOutputFormats.WebM):
-                switch (videoEncoder)
-                {
-                    case (supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9
-                    or supportedVideoEncoders.av1_nvenc or supportedVideoEncoders.av1_amf or supportedVideoEncoders.av1_qsv):
-                    return true;
-                }
-                break;
-            case (supportedOutputFormats.GIF):
-                if (videoEncoder == supportedVideoEncoders.gif) {return true;}
-                break;
-        }
-        return false;
+        var codec = CodecHelper.ParseVideoCodec(videoEncoder.ToString());
+        return codec.HasValue && CodecHelper.IsVideoCompatible(codec.Value, format.Value);
     }
 
-    //#####################################################################
-    //#####################################################################
-
-    public static bool? CheckAudioCompatibility(supportedAudioEncoders audioEncoder, supportedOutputFormats outputFormat, string? ffprobePathArg=null, string? inputPathArg=null)
+    public static bool? CheckAudioCompatibility(supportedAudioEncoders audioEncoder, supportedOutputFormats outputFormat, string? ffprobePathArg = null, string? inputPathArg = null)
     {
+        var format = CodecHelper.ParseContainerFormat(outputFormat.ToString());
+        if (format == null) return false;
+
         if (audioEncoder == supportedAudioEncoders.copy)
         {
-            if (ffprobePathArg == null) {MessageBoxAPI.Error("FFprobe path not found,, this error occur while check audio compatibility");return null;}
-            if (inputPathArg == null) {MessageBoxAPI.Error("Input path not found,, this error occur while check audio compatibility");return null;}
-            string[] result = ProcessAPI.Start(ffprobePathArg, $" -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 \"{inputPathArg}\"");
-            if (result[1] == "0")
+            if (string.IsNullOrEmpty(ffprobePathArg) || string.IsNullOrEmpty(inputPathArg))
             {
-                switch (result[0])
+                return true;
+            }
+
+            string[] result = ProcessAPI.Start(ffprobePathArg, $"-v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 \"{inputPathArg}\"");
+            if (result[1] == "0" && !string.IsNullOrWhiteSpace(result[0]))
+            {
+                var probedCodec = CodecHelper.ParseAudioCodec(result[0].Trim());
+                if (probedCodec.HasValue)
                 {
-                    case ("aac"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.aac, outputFormat);
-                    case ("flac"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.flac, outputFormat);
-                    case ("mp3"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.libmp3lame, outputFormat);
-                    case ("vorbis"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.libvorbis, outputFormat);
-                    case ("opus"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.libopus, outputFormat);
-                    case ("speex"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.libspeex, outputFormat);
-                    case ("alac"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.alac, outputFormat);
-                    case ("pcm_s16le"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.pcm_s16le, outputFormat);
-                    case ("pcm_s24le"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.pcm_s24le, outputFormat);
-                    case ("pcm_s32le"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.pcm_s32le, outputFormat);
-                    case ("pcm_f32le"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.pcm_f32le, outputFormat);
-                    case ("pcm_f64le"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.pcm_f64le, outputFormat);
-                    case ("pcm_alaw"):
-                        return CheckAudioCompatibility(supportedAudioEncoders.pcm_alaw, outputFormat);
-                    default:
-                        return false;
+                    return CodecHelper.IsAudioCompatible(probedCodec.Value, format.Value);
                 }
-            } else {return false;}
+            }
+            return true;
         }
-        switch (outputFormat)
-        {
-            case (supportedOutputFormats.MP4):
-                switch (audioEncoder.ToString())
-                {
-                    case not ("libspeex" or "pcm_alaw"):
-                        return true;
-                }
-                break;
-            case (supportedOutputFormats.MOV):
-                switch (audioEncoder.ToString())
-                {
-                    case not ("flac" or "libopus"):
-                        return true;
-                }
-                break;
-            case (supportedOutputFormats.MKV):
-                return true; // Matroska supports everything :DD
-            case (supportedOutputFormats.WebM):
-                switch (audioEncoder)
-                {
-                    case (supportedAudioEncoders.libvorbis or supportedAudioEncoders.libopus):
-                        return true;
-                }
-                break;
-            case (supportedOutputFormats.OGG):
-                switch (audioEncoder.ToString())
-                {
-                    case ("flac" or "libvorbis" or "libopus" or "libspeex"):
-                        return true;
-                }
-                break;
-            case (supportedOutputFormats.AAC):
-                if (audioEncoder==supportedAudioEncoders.aac) {return true;}
-                break;
-            case (supportedOutputFormats.WAV):
-                switch (audioEncoder.ToString())
-                {
-                    case ("aac" or "flac" or "libvorbis" or "pcm_s16le" or "pcm_s24le"
-                            or "pcm_s32le" or "pcm_f32le" or "pcm_f64le" or "pcm_alaw"):
-                        return true;
-                }
-                break;
-            case (supportedOutputFormats.FLAC):
-                if (audioEncoder==supportedAudioEncoders.flac) {return true;}
-                break;
-            case (supportedOutputFormats.MP3):
-                if (audioEncoder==supportedAudioEncoders.libmp3lame) {return true;}
-                break;
-        }
-        return false;
+
+        var codec = CodecHelper.ParseAudioCodec(audioEncoder.ToString());
+        return codec.HasValue && CodecHelper.IsAudioCompatible(codec.Value, format.Value);
     }
 
-    //#####################################################################
-    //#####################################################################
-
-    public static encodingPresets[] GetSupportedEncoderPresets(supportedVideoEncoders inputvideoEncoder)
+    public static encodingPresets[] GetSupportedEncoderPresets(supportedVideoEncoders inputVideoEncoder)
     {
-        encodingPresets[] result = new encodingPresets[] {};
-        encodingPresets[] presets = Enum.GetValues<encodingPresets>();
-        foreach (encodingPresets p in presets)
+        var codec = CodecHelper.ParseVideoCodec(inputVideoEncoder.ToString());
+        if (!codec.HasValue) return Array.Empty<encodingPresets>();
+
+        var presets = CodecHelper.GetSupportedPresets(codec.Value);
+        var result = new List<encodingPresets>();
+        foreach (var p in presets)
         {
-            if (EncodingPresetCheck(p, inputvideoEncoder) != null)
+            if (Enum.TryParse<encodingPresets>(p.ToString().ToLowerInvariant(), true, out var ep))
             {
-                result = [..result, p];
+                result.Add(ep);
             }
         }
-
-        return result;
+        return result.ToArray();
     }
 
-    //#####################################################################
-    //#####################################################################
-    public static string? EncodingPresetCheck(encodingPresets inputEncodingPreset, supportedVideoEncoders inputvideoEncoder, bool crash=false)
+    public static string? EncodingPresetCheck(encodingPresets inputEncodingPreset, supportedVideoEncoders inputVideoEncoder, bool crash = false)
     {
-        string result = "";
-        switch (inputvideoEncoder)
+        var supported = GetSupportedEncoderPresets(inputVideoEncoder);
+        if (supported.Contains(inputEncodingPreset))
         {
-            case (supportedVideoEncoders.libx264 or supportedVideoEncoders.libx265):
-                switch (inputEncodingPreset.ToString())
-                {
-                    case ("ultrafast" or "superfast" or "veryfast" or "faster" or "fast" or "medium" or
-                            "slow" or "slower" or "veryslow" or "placebo"):
-                        result += " -preset " + inputEncodingPreset.ToString();
-                        break;
-                    default:
-                        if (!crash) {return null;}
-                        MessageBoxAPI.Error("Libx264 and libx265 does not support your preset,, this error occur while converting ffmpeg arg to string");
-                        return null;
-                }
-                break;
-            case (supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9):
-                switch (inputEncodingPreset)
-                {
-                    case (encodingPresets.best or encodingPresets.good or encodingPresets.realtime):
-                        result += " -deadline " + inputEncodingPreset.ToString();
-                        break;
-                    default:
-                        if (!crash) {return null;}
-                        MessageBoxAPI.Error("VP8 and VP9 does not support your preset,, this error occur while converting ffmpeg arg to string");
-                        return null;
-                }
-                break;
-            case (supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc):
-                switch (inputEncodingPreset.ToString())
-                {
-                    case ("p1" or "p2" or "p3" or "p4" or "p5" or "p6" or "p7"): //bro.
-                        result += " -preset " + inputEncodingPreset.ToString();
-                        break;
-                    default:
-                        if (!crash) {return null;}
-                        MessageBoxAPI.Error("Nvidia encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
-                        return null;
-                }
-                break;
-            case (supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf):
-                switch (inputEncodingPreset)
-                {
-                    case (encodingPresets.speed or encodingPresets.balanced or encodingPresets.quality):
-                        result += " -preset " + inputEncodingPreset.ToString();
-                        break;
-                    default:
-                        if (!crash) {return null;}
-                        MessageBoxAPI.Error("Amd encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
-                        return null;
-                }
-                break;
-            case (supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv):
-                switch (inputEncodingPreset.ToString())
-                {
-                    case ("veryfast" or "faster" or "fast" or "medium" or "slow" or "slower" or "veryslow"):
-                        result += " -preset " + inputEncodingPreset.ToString();
-                        break;
-                    default:
-                        if (!crash) {return null;}
-                        MessageBoxAPI.Error("Intel encoders does not support your preset,, this error occur while converting ffmpeg arg to string");
-                        return null;
-                }
-                break;
+            return " -preset " + inputEncodingPreset.ToString();
         }
-        return result == "" ? null : result;
+        return null;
     }
 
-    //#####################################################################
-    //#####################################################################
-
-    public override String? ToString()
+    public CompressionOptions ToCompressionOptions()
     {
-        string result = " -y"; //saying yes bc the script will check if the output already exists then warns the user
-        if (startTime!=null) {result+=" -ss "+startTime;}
-        if (endTime!=null) {result+=" -to "+endTime;}
-        if (isTestFile ?? false) {result += " -f lavfi";}
-        if (loggingMode!=null) {result += " -v " + loggingMode;}
-        if (inputPath!=null) {result+= $" -i \"{inputPath}\"";} else {MessageBoxAPI.Error("InputPath not found while converting ffmpeg arg class to string");return null;}
-        if (outputPath==null) {MessageBoxAPI.Error("outputPath not found while converting ffmpeg arg class to string");return null;}
-        if (outputFormat==null) {MessageBoxAPI.Error("output format arg not found while converting ffmpeg arg class to string");return null;}
-        if (ffprobePath==null) {MessageBoxAPI.Error("FFprobePath not found while converting ffmpeg arg class to string");return null;}
-        //if (videoEncoder==null) {MessageBoxAPI.Error("VideoEncoder not found while converting ffmpeg arg class to string");return null;}
-
-        if (videoFramerate==null||videoResolution==null|| !(accurateColorGif ?? false))
-        {result += " -map \"0:v:0?\" -map \"0:a:0?\"";}
-        else
-        {result += " -map \"0:a:0?\"";}
-
-        if (videoEncoder !=null)
+        var options = new CompressionOptions
         {
-            bool? cc = CheckVideoCompatibility((supportedVideoEncoders)videoEncoder, (supportedOutputFormats)outputFormat, ffprobePath, inputPath);
-            if (cc==null) {return null;}
-            if (!((bool)cc))
-            {
-                MessageBoxAPI.Error("Your file format does not support your video encoder,, this error occure while converting ffmpeg arg to string");
-                return null;
-            }
+            InputPath = inputPath ?? string.Empty,
+            OutputPath = outputPath ?? string.Empty,
+            FFprobePath = ffprobePath,
+            IsTestFile = isTestFile ?? false,
+            LoggingMode = loggingMode,
+            EnableProgressReporting = false,
+            CopyMetadata = copyMetaData ?? true
+        };
 
-            switch (videoEncoder)
-            {
-                case (supportedVideoEncoders.libvpx_vp9):
-                    result += " -c:v libvpx-vp9";
-                    break;
-                case (supportedVideoEncoders.libaom_av1):
-                    result += " -c:v libaom-av1";
-                    break;
-                default:
-                    result += " -c:v " + videoEncoder.ToString();
-                    break;
-            }
-
-            if (videoRateControl!=null)
-            {
-                switch (videoRateControl)
-                {
-                    case videoRateControlTypes.CBR:
-                        // constant bitrate
-                        if (videoBitrate==null) {MessageBoxAPI.Error("VideoBitrate not found while converting ffmpeg arg class to string");return null;}
-
-                        switch (videoEncoder)
-                        {
-                            case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
-                                //nvidia
-                                result += " -rc cbr -b:v " + videoBitrate;
-                                break;
-                            case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
-                                //amd
-                                result += " -rc cbr -b:v " + videoBitrate; 
-                                break;
-                            default:
-                                result += $" -b:v {videoBitrate} -minrate {videoBitrate} -maxrate {videoBitrate}";
-                                if (BufferSize!=null){result += " -bufsize " + BufferSize;}
-                                break;
-                        }
-
-                        break;
-                    case videoRateControlTypes.VBR:
-
-                        if (videoBitrate==null) {MessageBoxAPI.Error("VideoBitrate not found while converting ffmpeg arg class to string");return null;}
-
-                        switch (videoEncoder)
-                        {
-                            case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
-                                //nvidia
-                                result += " -rc vbr";
-                                break;
-                            case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
-                                //amd
-                                result += " -rc vbr_peak";
-                                break;
-                        }
-                        result += " -b:v " + videoBitrate;
-                        if (MinimumVideoBitrate!=null) {result+=" -minrate "+MinimumVideoBitrate;} // optional
-                        if (MaximumVideoBitrate!=null) {result+=" -maxrate "+MaximumVideoBitrate;}
-                        break;
-                    case videoRateControlTypes.CQP:
-
-                        if (QPConstant==null) {MessageBoxAPI.Error("QPConstant not found while converting ffmpeg arg class to string");return null;}
-
-                        switch (videoEncoder)
-                        {
-                            case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
-                                //nvidia
-                                result += " -rc constqp -qp " + QPConstant;
-                                break;
-                            case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
-                                //amd
-                                //not even gonna bother adding option for i and p frame
-                                result += $" -rc cqp -qp_i {QPConstant} -qp_p {QPConstant}";
-                                break;
-                            case supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv:
-                                //intel
-                                result += " -qscale:v 1 -global_quality " + QPConstant;
-                                break;
-                            case supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9:
-                                MessageBoxAPI.Error("your library does not support CQP rate control this happen while converting ffmpeg arg class to string");
-                                return null;
-
-                            default:
-                                result += " -qp " + QPConstant;
-                                break;
-                        }
-                        break;
-                    case videoRateControlTypes.CQ:
-                        if (CQConstant==null) {MessageBoxAPI.Error("CQConstant not found while converting ffmpeg arg class to string");return null;}
-
-                        switch (videoEncoder)
-                        {
-                            case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
-                                //nvidia
-                                result += $" -rc vbr -cq {CQConstant} -b:v 0";
-                                break;
-                            case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
-                                //amd
-                                result += " -rc qvbr -qvbr_quality_level " + CQConstant;
-                                break;
-                            case supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv:
-                                //intel
-                                result += " -global_quality " + CQConstant;
-                                break;
-                            case supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9:
-                                // idk
-                                result += $" -crf {CQConstant} -b:v 0";
-                                break;
-                            default:
-                                result += " -crf " + CQConstant;
-                                break;
-                        }
-                        break;
-
-                }
-            }
-
-            if (videoEncodingSpeed!=null)
-            {
-                result += EncodingPresetCheck((encodingPresets)videoEncodingSpeed, (supportedVideoEncoders)videoEncoder, true);
-            }
-
-            if (cpuUsed != null)
-            {
-                switch (videoEncoder)
-                {
-                    case (supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9):
-                        result += " -cpu-used " + cpuUsed;
-                        break;
-                    default:
-                        MessageBoxAPI.Error("Your encoder does not support -cpu-used,, this error occur while converting ffmpeg arg to string");
-                        return null;
-                }
-            }
-        } // (videoEncoder != null) if statement ends here
-
-        if (videoFramerate!=null)
+        if (outputFormat.HasValue)
         {
-            result += " -filter_complex \"[0:v]fps="+videoFramerate;
-            if (videoResolution!=null)
-            {
-                result += $",scale={videoResolution[0]}:{videoResolution[1]}";
-                if (videoscalingflag!=null) {result += ":flags="+videoscalingflag.ToString();}
-            }
-            if (accurateColorGif ?? false)
-            {
-                if (outputFormat == supportedOutputFormats.GIF)
-                {
-                    result += ",split[a][b];[a]palettegen[p];[b][p]paletteuse=dither=sierra2_4a";
-                }
-            }
-            result += "[outv]\" -map \"[outv]\"";
-
-        } else if (videoResolution!=null) //video res is null
-        {
-            result += $" -filter_complex \"[0:v]scale={videoResolution[0]}:{videoResolution[1]}";
-            if (videoscalingflag!=null) {result += ":flags="+videoscalingflag.ToString();}
-            if (accurateColorGif ?? false)
-            {
-                if (outputFormat == supportedOutputFormats.GIF)
-                {
-                    result += ",split[a][b];[a]palettegen[p];[b][p]paletteuse=dither=sierra2_4a";
-                }
-            }
-            result += "[outv]\" -map \"[outv]\"";
-        } else if (accurateColorGif ?? false) // fps and res is null
-        {
-            if (outputFormat == supportedOutputFormats.GIF)
-            {
-                result += " -filter_complex \"[0:v]split[a][b];[a]palettegen[p];[b][p]paletteuse=dither=sierra2_4a[outv]\" -map \"[outv]\"";
-            }
+            var fmt = CodecHelper.ParseContainerFormat(outputFormat.Value.ToString());
+            if (fmt.HasValue) options.OutputFormat = fmt.Value;
         }
 
-        // AUDIO
-
-        if (disableAudio ?? false || audioEncoder == null){result += " -an";} else if (audioEncoder != null)
-        { //audio is on
-            bool? cca = CheckAudioCompatibility((supportedAudioEncoders)audioEncoder, (supportedOutputFormats)outputFormat, ffprobePath, inputPath);
-            if (cca==null) {return null;}
-            if ((bool)cca)
-            {
-                result += " -c:a " + audioEncoder.ToString();
-            } else
-            {
-                MessageBoxAPI.Error("Your audio format does not support your encoder,, this error occur while converting ffmpeg arg to string");
-                return null;
-            }
-
-
-            if (audioBitrate!=null) {result += " -b:a " + audioBitrate;}
-            if (audioChannelAmount!=null) {result += " -ac " + audioChannelAmount;}
-        }
-
-        if (copyMetaData ?? true)
-        {result += " -map_metadata 0";}
-        else
-        {result += " -map_metadata -1";}
-
-        switch (outputFormat)
+        if (videoEncoder.HasValue)
         {
-            case (supportedOutputFormats.MKV):
-                result += " -f Matroska";
-                break;
-            case (supportedOutputFormats.AAC):
-                result += " -f adts";
-                break;
-            default:
-                result += " -f " + outputFormat.ToString()?.ToLower();
-                break;
+            options.VideoCodec = CodecHelper.ParseVideoCodec(videoEncoder.Value.ToString());
         }
 
-        result += $" \"{outputPath}\"";
+        if (videoRateControl.HasValue)
+        {
+            options.RateControl = CodecHelper.ParseRateControlMode(videoRateControl.Value.ToString());
+        }
 
-        string textPathDir = Path.GetDirectoryName(ffprobePath)!;
-        string textPath = Path.Combine(textPathDir, "LastFFmpegArg.txt");
-        File.WriteAllText(textPath, result);
+        options.VideoBitrate = videoBitrate;
+        options.CQConstant = CQConstant;
+        options.QPConstant = QPConstant;
+        options.MinVideoBitrate = MinimumVideoBitrate;
+        options.MaxVideoBitrate = MaximumVideoBitrate;
+        options.BufferSize = BufferSize;
 
-        return result;
+        if (videoEncodingSpeed.HasValue)
+        {
+            options.Preset = CodecHelper.ParsePreset(videoEncodingSpeed.Value.ToString());
+        }
+
+        if (int.TryParse(cpuUsed, out var parsedCpu))
+        {
+            options.CpuUsed = parsedCpu;
+        }
+
+        if (videoResolution != null && videoResolution.Length >= 2)
+        {
+            if (int.TryParse(videoResolution[0], out var w)) options.TargetWidth = w;
+            if (int.TryParse(videoResolution[1], out var h)) options.TargetHeight = h;
+        }
+
+        if (videoscalingflag.HasValue)
+        {
+            options.ScalingAlgorithm = CodecHelper.ParseScalingAlgorithm(videoscalingflag.Value.ToString());
+        }
+
+        if (double.TryParse(videoFramerate, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var fps))
+        {
+            options.Framerate = fps;
+        }
+
+        options.AccurateColorGif = accurateColorGif ?? false;
+        options.DisableAudio = disableAudio ?? false;
+
+        if (audioEncoder.HasValue)
+        {
+            options.AudioCodec = CodecHelper.ParseAudioCodec(audioEncoder.Value.ToString());
+        }
+
+        options.AudioBitrate = audioBitrate;
+
+        if (int.TryParse(audioChannelAmount, out var ch))
+        {
+            options.AudioChannels = ch;
+        }
+
+        if (!string.IsNullOrWhiteSpace(startTime) && TimeSpan.TryParse(startTime, out var st))
+        {
+            options.StartTime = st;
+        }
+
+        if (!string.IsNullOrWhiteSpace(endTime) && TimeSpan.TryParse(endTime, out var et))
+        {
+            options.EndTime = et;
+        }
+
+        return options;
+    }
+
+    public override string? ToString()
+    {
+        if (string.IsNullOrEmpty(inputPath)) return null;
+        if (string.IsNullOrEmpty(outputPath)) return null;
+        if (!outputFormat.HasValue) return null;
+
+        var options = ToCompressionOptions();
+        var command = FFmpegArgumentBuilder.BuildCommandLine(options);
+
+        try
+        {
+            if (!string.IsNullOrEmpty(ffprobePath))
+            {
+                var dir = Path.GetDirectoryName(ffprobePath);
+                if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+                {
+                    File.WriteAllText(Path.Combine(dir, "LastFFmpegArg.txt"), command);
+                }
+            }
+        }
+        catch
+        {
+            // Ignore debug logging side-effect exceptions
+        }
+
+        return command;
     }
 }
