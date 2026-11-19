@@ -1,14 +1,16 @@
-
 <Window x:Class="VideoProcessor.VideoProcessingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="CS Compressor"
-        Height="760"
+        Height="780"
         Width="1050"
-        MinHeight="600"
+        MinHeight="650"
         MinWidth="850"
         Icon="frameworks/CSCompressor.ico"
-        Background="#F3F4F6">
+        Background="#F3F4F6"
+        AllowDrop="True"
+        DragEnter="Window_DragEnter"
+        Drop="Window_Drop">
 
     <Window.Resources>
         <Style TargetType="TextBox">
@@ -49,6 +51,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Margin="0,0,0,15">
@@ -87,13 +90,20 @@
 
                                 <TextBox x:Name="pathTB"
                                          IsReadOnly="True"
-                                         Margin="0,4,8,10"/>
+                                         Margin="0,4,8,4"/>
 
                                 <Button x:Name="BrowseButton"
                                         Grid.Column="1"
                                         Content="Browse..."
-                                        Margin="0,4,0,10"/>
+                                        Click="InputBrowse"
+                                        Margin="0,4,0,4"/>
                             </Grid>
+
+                            <TextBlock x:Name="MediaInfoTextBlock"
+                                       Text="No media loaded"
+                                       FontSize="11"
+                                       Foreground="#6B7280"
+                                       Margin="0,0,0,10"/>
 
                             <TextBlock Text="Output file"
                                        Style="{StaticResource FieldTitle}"/>
@@ -131,7 +141,6 @@
                                 <ComboBoxItem Content="MP3"/>
                             </ComboBox>
 
-
                         </StackPanel>
                     </GroupBox>
 
@@ -160,11 +169,12 @@
                             <TextBlock Text="Video bitrate"
                                        x:Name="VideoBitrateTitle"
                                        Style="{StaticResource FieldTitle}"/>
-                            <TextBlock Text="M, K suffix ex. 10M = 10 Mb/s, 128K = 128 Kb/s "
-                                        Style="{StaticResource FieldTitle}"/>
+                            <TextBlock Text="M, K suffix ex. 10M = 10 Mb/s, 128K = 128 Kb/s"
+                                       FontSize="11"
+                                       Foreground="#6B7280"/>
                             <TextBox x:Name="VideoBitrateTB"/>
 
-                            <TextBlock Text="CQ / CQP constant"
+                            <TextBlock Text="CQ / CQP constant (Quality: lower is better)"
                                        Style="{StaticResource FieldTitle}"/>
 
                             <TextBox x:Name="CQTB"/>
@@ -202,7 +212,6 @@
                                 <ComboBoxItem Content="7"/>
                             </ComboBox>
 
-
                         </StackPanel>
                     </GroupBox>
 
@@ -213,8 +222,21 @@
                     <GroupBox Header="Video Filters">
                         <StackPanel>
 
-                            <TextBlock Text="Resolution"
-                                       Style="{StaticResource FieldTitle}"/>
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Resolution (Width × Height)"
+                                           Style="{StaticResource FieldTitle}"/>
+                                <Button Grid.Column="1"
+                                        Content="Match Source"
+                                        Height="22"
+                                        Padding="6,1"
+                                        FontSize="11"
+                                        Click="MatchSourceResolution"
+                                        Margin="0"/>
+                            </Grid>
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -234,7 +256,7 @@
                                          Grid.Column="2"/>
                             </Grid>
 
-                            <TextBlock Text="Framerate"
+                            <TextBlock Text="Framerate (fps)"
                                        Style="{StaticResource FieldTitle}"/>
 
                             <TextBox x:Name="FramerateTB"/>
@@ -254,7 +276,6 @@
                                 <ComboBoxItem Content="lanczos"/>
                                 <ComboBoxItem Content="spline"/>
                             </ComboBox>
-
 
                             <CheckBox x:Name="AccurateColorGifCB"
                                       Content="Accurate GIF color (GIF format only)"
@@ -277,12 +298,12 @@
                             <TextBlock Text="Audio bitrate"
                                        Style="{StaticResource FieldTitle}"/>
 
-                            <TextBox x:Name="AudioBitrateTB"/>
+                            <TextBox x:Name="AudioBitrateTB" Text="128k"/>
 
                             <TextBlock Text="Audio channels"
                                        Style="{StaticResource FieldTitle}"/>
 
-                            <ComboBox x:Name="AudioChannelAmountCB">
+                            <ComboBox x:Name="AudioChannelAmountCB" SelectedIndex="1">
                                 <ComboBoxItem Content="1"/>
                                 <ComboBoxItem Content="2"/>
                             </ComboBox>
@@ -297,7 +318,7 @@
                     <GroupBox Header="Trims">
                         <StackPanel>
 
-                            <TextBlock Text="Start time"
+                            <TextBlock Text="Start time (HH:MM:SS)"
                                        Style="{StaticResource FieldTitle}"/>
 
                             <Grid>
@@ -324,7 +345,7 @@
                                          Grid.Column="4"/>
                             </Grid>
 
-                            <TextBlock Text="End time"
+                            <TextBlock Text="End time (HH:MM:SS, leave as -- to keep full length)"
                                        Style="{StaticResource FieldTitle}"/>
 
                             <Grid>
@@ -353,16 +374,17 @@
 
                         </StackPanel>
                     </GroupBox>
+
                     <GroupBox Header="Other Options">
                         <StackPanel>
 
                             <CheckBox x:Name="CopyMetaDataCB"
                                       Content="Copy metadata"
-                                      IsChecked = "true"
+                                      IsChecked="True"
                                       Margin="0,5,0,8"/>
 
                             <CheckBox x:Name="EnableLog"
-                                      Content="Enable log"
+                                      Content="Show FFmpeg output log"
                                       Margin="0,5,0,8"/>
 
                         </StackPanel>
@@ -372,7 +394,24 @@
             </Grid>
         </ScrollViewer>
 
-        <Border Grid.Row="2"
+        <!-- Log Output Viewer (collapsible/expandable when enabled) -->
+        <Expander Grid.Row="2"
+                  x:Name="LogExpander"
+                  Header="FFmpeg Log Output"
+                  Visibility="Collapsed"
+                  Margin="0,8,0,0">
+            <TextBox x:Name="LogTextBox"
+                     Height="100"
+                     IsReadOnly="True"
+                     VerticalScrollBarVisibility="Auto"
+                     FontFamily="Consolas, monospace"
+                     FontSize="11"
+                     Background="#1F2937"
+                     Foreground="#F9FAFB"/>
+        </Expander>
+
+        <!-- Bottom action bar -->
+        <Border Grid.Row="3"
                 BorderBrush="#D1D5DB"
                 BorderThickness="0,1,0,0"
                 Padding="0,12,0,0"
@@ -381,19 +420,44 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button x:Name="Go"
-                        Grid.Column="1"
-                        Content="Compress"
-                        Height="40"
-                        FontSize="15"
-                        FontWeight="Bold"
-                        Background="#021775"
-                        Foreground="white"
-                        BorderThickness="0"
-                        Margin="0"/>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <ProgressBar x:Name="CompressionProgressBar"
+                                 Height="14"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="0"
+                                 Margin="0,0,0,4"/>
+                    <TextBlock x:Name="StatusTextBlock"
+                               Text="Ready to compress"
+                               FontSize="12"
+                               Foreground="#4B5563"
+                               TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="CancelButton"
+                            Content="Cancel"
+                            Height="40"
+                            Width="90"
+                            IsEnabled="False"
+                            Click="CancelCompression"
+                            Margin="0,0,10,0"/>
+
+                    <Button x:Name="Go"
+                            Content="Compress"
+                            Height="40"
+                            Width="130"
+                            FontSize="15"
+                            FontWeight="Bold"
+                            Background="#1E40AF"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Click="StartCompression"
+                            Margin="0"/>
+                </StackPanel>
             </Grid>
         </Border>
 

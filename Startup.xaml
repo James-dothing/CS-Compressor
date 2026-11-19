@@ -1,41 +1,73 @@
-﻿
-<Window
-        x:Class="CsCompressor.Startup"
+<Window x:Class="CsCompressor.Startup"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="CS Compressor"
         Height="450"
         Width="800"
         WindowStartupLocation="CenterScreen"
-        Icon="frameworks/CSCompressor.ico">
+        Icon="frameworks/CSCompressor.ico"
+        Background="#F9FAFB"
+        AllowDrop="True"
+        DragEnter="Window_DragEnter"
+        Drop="Window_Drop">
 
     <Grid>
-        <StackPanel
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Width="500">
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="520">
 
-            <TextBlock Text="CS compressor"
+            <TextBlock Text="CS Compressor"
                        FontSize="32"
                        FontWeight="Bold"
+                       Foreground="#111827"
                        HorizontalAlignment="Center"
-                       Margin="0,0,0,35"/>
+                       Margin="0,0,0,10"/>
+
+            <TextBlock Text="Select a video file to compress or drag and drop it here"
+                       FontSize="14"
+                       Foreground="#6B7280"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,30"/>
+
+            <TextBlock Text="Input Video Path"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="#374151"
+                       Margin="0,0,0,6"/>
 
             <TextBox x:Name="pathTB"
-                     Height="35"
-                     IsReadOnly="False"
+                     Height="38"
+                     Padding="8,6"
                      VerticalContentAlignment="Center"
-                     Margin="0,0,0,10"/>
+                     BorderBrush="#D1D5DB"
+                     Margin="0,0,0,12"/>
 
-            <Button Content="Browse..."
-                    Height="35"
-                    Click="SelectFile"
-                    Margin="0,0,0,20"/>
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="140"/>
+                </Grid.ColumnDefinitions>
 
-            <Button Content="Go!"
+                <TextBlock x:Name="statusTB"
+                           VerticalAlignment="Center"
+                           Foreground="#4B5563"
+                           FontSize="12"
+                           Text="Ready"/>
+
+                <Button Grid.Column="1"
+                        Content="Browse..."
+                        Height="36"
+                        FontWeight="Medium"
+                        Click="SelectFile"/>
+            </Grid>
+
+            <Button Content="Continue to Compressor"
                     Height="45"
                     FontSize="16"
                     FontWeight="Bold"
+                    Background="#1E40AF"
+                    Foreground="White"
+                    BorderThickness="0"
                     Click="Go"/>
 
         </StackPanel>
