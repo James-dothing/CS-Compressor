@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/CsCompressor.Tests/CsCompressor.Tests.csproj" />
+  </Folder>
+  <Project Path="CsCompressor.Core/CsCompressor.Core.csproj" />
+  <Project Path="CsCompressor.csproj" />
+</Solution>

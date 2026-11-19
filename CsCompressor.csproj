@@ -1,4 +1,4 @@
-﻿
+
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -13,6 +13,8 @@
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>frameworks\CSCompressor.ico</ApplicationIcon>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <DefaultItemExcludes>$(DefaultItemExcludes);CsCompressor.Core/**;tests/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +22,10 @@
     <EmbeddedResource Include="frameworks\7za.exe" />
     <EmbeddedResource Include="frameworks\ffmpeg.7z" />
     <EmbeddedResource Include="frameworks\ffprobe.7z" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="CsCompressor.Core\CsCompressor.Core.csproj" />
   </ItemGroup>
 
 </Project>
