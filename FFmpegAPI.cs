@@ -1,53 +1,67 @@
 using System.IO;
 using System.Diagnostics;
-using System.Windows.Media.Imaging;
+using System.Windows;
 using VideoProcessor;
+using CsCompressor.Core.Services;
 
 public class FFmpegAPI
 {
-    public static String? ffmpegPath;
-    public static String? ffprobePath;
-    public static String? magickPath;
-    public static String? testVideoPath;
-    public static String[] availableVideoEncoders = {"libx264", "libx265", "libaom_av1", "libvpx", "libvpx_vp9","gif"};
+    public static string? ffmpegPath;
+    public static string? ffprobePath;
+    public static string? magickPath;
+    public static string? testVideoPath;
+    public static string[] availableVideoEncoders = { "libx264", "libx265", "libaom_av1", "libvpx", "libvpx_vp9", "gif" };
     public static VideoProcessingWindow? currentVIdeoProcessingWindow;
 
-    public static void CheckFFmpeg()
+    public static bool CheckFFmpeg(bool showDialog = true)
     {
-        if (ffmpegPath != null)
-        {if (!File.Exists(ffmpegPath)) {MessageBoxAPI.Error("FFmpeg not found");}}
-        else // ffmpegPath is null
-        {MessageBoxAPI.Error("FFmpeg path is NULL");}
+        if (string.IsNullOrEmpty(ffmpegPath) || !File.Exists(ffmpegPath))
+        {
+            if (showDialog)
+            {
+                MessageBoxAPI.Error("FFmpeg executable not found. Please install FFmpeg on your system or place it in the application folder.", Crash: false);
+            }
+            return false;
+        }
+        return true;
     }
 
     private static bool TestEncoder(string encoder)
     {
+        if (string.IsNullOrEmpty(ffmpegPath) || !File.Exists(ffmpegPath)) return false;
+
         if (Enum.TryParse<FFmpegArg.supportedVideoEncoders>(encoder, out FFmpegArg.supportedVideoEncoders a))
         {
-            FFmpegArg arg = new FFmpegArg() 
+            string nullDevice = OperatingSystem.IsWindows() ? "NUL" : "/dev/null";
+            FFmpegArg arg = new FFmpegArg()
             {
-                ffprobePath=ffprobePath, inputPath="testsrc=d=0.1", isTestFile=true, loggingMode="quiet",
-                videoEncoder=a, outputFormat=FFmpegArg.supportedOutputFormats.MKV, outputPath="NUL"
+                ffprobePath = ffprobePath ?? ffmpegPath,
+                inputPath = "testsrc=d=0.1",
+                isTestFile = true,
+                loggingMode = "quiet",
+                videoEncoder = a,
+                outputFormat = FFmpegArg.supportedOutputFormats.MKV,
+                outputPath = nullDevice
             };
+
             string? argString = arg.ToString();
-            if (argString==null) {return false;}
-            string[] p = ProcessAPI.Start(ffmpegPath!, argString);
+            if (argString == null) { return false; }
+
+            string[] p = ProcessAPI.Start(ffmpegPath, argString);
             if (p[1] == "0")
             {
-                // MessageBoxAPI.Debug(string.IsNullOrEmpty(p[2]) ? "empty" : p[2]);
-                availableVideoEncoders = [..availableVideoEncoders, encoder];
+                if (!availableVideoEncoders.Contains(encoder))
+                {
+                    availableVideoEncoders = [.. availableVideoEncoders, encoder];
+                }
                 return true;
-            } else
-            {
-                return false;
             }
-        } else
-        {
-            MessageBoxAPI.Error("Something went wrong!\nT.E+" + encoder);
+            return false;
         }
         return false;
     }
-    async public static Task CheckAllEncoders(VideoProcessingWindow aa)
+
+    public static async Task CheckAllEncoders(VideoProcessingWindow aa)
     {
         await Task.Run(() =>
         {
@@ -56,15 +70,46 @@ public class FFmpegAPI
             TestEncoder("h264_qsv"); TestEncoder("hevc_qsv"); TestEncoder("av1_qsv");
         });
 
-        aa.UpdateVideoEncoders(availableVideoEncoders);
+        if (Application.Current != null)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                aa.UpdateVideoEncoders(availableVideoEncoders);
+            });
+        }
+        else
+        {
+            aa.UpdateVideoEncoders(availableVideoEncoders);
+        }
     }
 
     public static void Init()
     {
-        Extract.GetPath("7za.exe");
-        ffmpegPath = Extract.GetPath("ffmpeg.7z", "ffmpeg.exe");
-        ffprobePath= Extract.GetPath("ffprobe.7z", "ffprobe.exe");
-        CheckFFmpeg();
+        // 1. Locate system or local FFmpeg and FFprobe
+        var ffmpegResult = FFmpegLocator.ValidateBinary("ffmpeg");
+        if (ffmpegResult.IsAvailable)
+        {
+            ffmpegPath = ffmpegResult.ExecutablePath;
+        }
 
+        var ffprobeResult = FFmpegLocator.ValidateBinary("ffprobe");
+        if (ffprobeResult.IsAvailable)
+        {
+            ffprobePath = ffprobeResult.ExecutablePath;
+        }
+
+        // 2. If not found and on Windows, fallback to bundled archive extraction
+        if (string.IsNullOrEmpty(ffmpegPath) && OperatingSystem.IsWindows())
+        {
+            Extract.GetPath("7za.exe");
+            ffmpegPath = Extract.GetPath("ffmpeg.7z", "ffmpeg.exe");
+        }
+
+        if (string.IsNullOrEmpty(ffprobePath) && OperatingSystem.IsWindows())
+        {
+            ffprobePath = Extract.GetPath("ffprobe.7z", "ffprobe.exe");
+        }
+
+        CheckFFmpeg(showDialog: false);
     }
 }

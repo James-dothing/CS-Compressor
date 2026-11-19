@@ -2,24 +2,38 @@ using System.Windows;
 
 public class MessageBoxAPI
 {
-    public static void Error(string text, bool Crash=true)
+    public static void Error(string text, bool Crash = false)
     {
-        MessageBox.Show("FATAL ERROR: " + text + "??", "FATAL ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
-
-        if (Crash){Application.Current.Shutdown();}
+        if (Application.Current != null)
+        {
+            MessageBox.Show(text, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (Crash)
+            {
+                Application.Current.Shutdown();
+            }
+        }
     }
 
-    public static void Debug(string text, bool Crash=false)
+    public static void Debug(string text, bool Crash = false)
     {
-        MessageBox.Show(text, "debug message:", MessageBoxButton.OK);
-        if (Crash){Application.Current.Shutdown();}
+        if (Application.Current != null)
+        {
+            MessageBox.Show(text, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (Crash)
+            {
+                Application.Current.Shutdown();
+            }
+        }
     }
-    
-    async public static Task DebugAsync(string text)
+
+    public static async Task DebugAsync(string text)
     {
         await Task.Run(() =>
         {
-            MessageBox.Show(text, "debug message:", MessageBoxButton.OK);
+            if (Application.Current != null)
+            {
+                MessageBox.Show(text, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         });
     }
 }

@@ -4,51 +4,69 @@ using System.Reflection;
 
 public class Extract
 {
-    public static string GetPath(String fileName, string realFileName="")
+    public static string ExtractResourceToFile(string resourceFileName, string destinationFilePath)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationFilePath)!);
+        using Stream? resource = Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("CsCompressor.frameworks." + resourceFileName);
+
+        if (resource == null)
+        {
+            return "";
+        }
+
+        using FileStream file = File.Create(destinationFilePath);
+        resource.CopyTo(file);
+        return destinationFilePath;
+    }
+
+    public static string GetPath(string fileName, string realFileName = "")
     {
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string frameworksDir = Path.Combine(appData, "CSCompressor");
         string filePath = Path.Combine(frameworksDir, fileName);
-
         string szPath = Path.Combine(frameworksDir, "7za.exe");
         string realPath = Path.Combine(frameworksDir, realFileName);
-        if (realFileName != "" && !File.Exists(szPath)) {MessageBoxAPI.Error("7za.exe doesn't exist");return"";}
 
-        if (! (File.Exists(filePath) || (string.IsNullOrEmpty(realFileName) ? false : File.Exists(realPath))))
+        // Ensure 7za.exe is extracted if needed
+        if (!string.IsNullOrEmpty(realFileName) && !File.Exists(szPath))
         {
-            if (realFileName=="ffmpeg.exe")
+            ExtractResourceToFile("7za.exe", szPath);
+        }
+
+        // Check if destination exists
+        if (File.Exists(filePath) || (!string.IsNullOrEmpty(realFileName) && File.Exists(realPath)))
+        {
+            return !string.IsNullOrEmpty(realFileName) && File.Exists(realPath) ? realPath : filePath;
+        }
+
+        Directory.CreateDirectory(frameworksDir);
+        string extracted = ExtractResourceToFile(fileName, filePath);
+        if (string.IsNullOrEmpty(extracted))
+        {
+            return "";
+        }
+
+        if (string.IsNullOrEmpty(realFileName))
+        {
+            return filePath;
+        }
+
+        if (File.Exists(realPath))
+        {
+            return realPath;
+        }
+
+        // Unpack archive with 7za.exe if on Windows
+        if (OperatingSystem.IsWindows() && File.Exists(szPath))
+        {
+            string[] result = ProcessAPI.Start(szPath, $"e \"{filePath}\" -y -o\"{frameworksDir}\"");
+            if (result[1] != "0")
             {
-                _ = MessageBoxAPI.DebugAsync("Extracting... Please wait\n(this won't be taking this long again after this)");
+                MessageBoxAPI.Error($"Extraction error (code {result[1]}): {result[2]}", Crash: false);
             }
-            Directory.CreateDirectory(frameworksDir);
-
-            Stream? resource = Assembly.GetExecutingAssembly()
-            .GetManifestResourceStream("CsCompressor.frameworks."+fileName);
-
-            if (resource == null) {MessageBoxAPI.Error(fileName+" not found inside this file");return"";}
-
-            FileStream file = File.Create(filePath);
-            resource.CopyTo(file);
-
-            file.Dispose();
-            resource.Dispose();
         }
 
-        if (string.IsNullOrEmpty(realFileName)) {return filePath;} //if needed to be unzip then proceed the following code:
-        if (File.Exists(realPath)) {return realPath;}
-        
-        string[] result = ProcessAPI.Start(szPath,
-            $"e \"{filePath}\" -y -o\"{frameworksDir}\"" // "%appdata%\CSCompressor\7za.exe" e "%appdata%\CSCompressor\ffmpeg.7z" -y -o"%appdata%\CSCompressor"
-        );
-        if (result[1] != "0")
-        {
-            MessageBoxAPI.Error($"Something went wrong! (exit code: {result[1]})\n{result[0]}\n{result[2]}");
-        }
-
-        if (File.Exists(realPath)) {return realPath;}
-
-
-        MessageBoxAPI.Error("real path doesn't exist");
-        return "";
+        return File.Exists(realPath) ? realPath : "";
     }
 }
