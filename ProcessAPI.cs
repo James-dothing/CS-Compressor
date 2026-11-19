@@ -1,28 +1,15 @@
-using System.IO;
-using System.Diagnostics;
-
-public class ProcessAPI()
+// Compatibility shim forwarding to CsCompressor.Core.Services.ProcessAPI
+public static class ProcessAPI
 {
-    public static string[] Start(string fileName, string argument, bool noWindow=true)
-    {
-        try
-        {
-            Process? p = new Process();
-            p.StartInfo.FileName = fileName;
-            p.StartInfo.Arguments = " " + argument; // " " + because incase idk lool
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.CreateNoWindow = noWindow;
-            p.Start();
-            if (p==null) {return new string[] {"", "1", "process is null"};} // {output, exit status, error message}
-            string err = p.StandardError.ReadToEnd();
-            string output = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-            int exitCode = p.ExitCode;
-            return new string[] {output, exitCode.ToString(), err};
-        } catch (Exception e)
-        {
-            return new string[] {"", "1", "An error has occur:\n" + e.ToString()};
-        }
-    }
+    public static string[] Start(string fileName, string argument, bool noWindow = true)
+        => CsCompressor.Core.Services.ProcessAPI.Start(fileName, argument, noWindow);
+
+    public static Task<CsCompressor.Core.Services.ProcessExecutionResult> StartAsync(
+        string fileName,
+        string? argument = null,
+        IEnumerable<string>? argumentList = null,
+        Action<string>? onOutputLine = null,
+        Action<string>? onErrorLine = null,
+        CancellationToken cancellationToken = default)
+        => CsCompressor.Core.Services.ProcessAPI.StartAsync(fileName, argument, argumentList, onOutputLine, onErrorLine, cancellationToken);
 }
