@@ -1,5 +1,6 @@
 // using System.IO;
 using Microsoft.Win32;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -265,6 +266,32 @@ namespace VideoProcessor
             {
                 OutputPathTB.Text = dialog.FileName;
             }
+        }
+        private void Done(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(pathTB.Text) || !File.Exists(pathTB.Text)) {MessageBoxAPI.Debug("The input file doesn't exist!");return;}
+            if (string.IsNullOrEmpty(OutputPathTB.Text)) {MessageBoxAPI.Debug("The saving file path doesn't exist!");return;}
+
+            if (VideoBitrateTB.IsEnabled && !string.IsNullOrEmpty(VideoBitrateTB.Text) && !QOL.CheckSyntax(VideoBitrateTB)) {MessageBoxAPI.Debug("invalid syntax at VideoBitrate");return;}
+            if (MinimumVideoBitrateTB.IsEnabled && !string.IsNullOrEmpty(MinimumVideoBitrateTB.Text) && !QOL.CheckSyntax(MinimumVideoBitrateTB)) {MessageBoxAPI.Debug("invalid syntax at MinimumVideoBitrate");return;}
+            if (MaximumVideoBitrateTB.IsEnabled && !string.IsNullOrEmpty(MaximumVideoBitrateTB.Text) && !QOL.CheckSyntax(MaximumVideoBitrateTB)) {MessageBoxAPI.Debug("invalid syntax at MaximumVideoBitrate");return;}
+            if (BufferSizeTB.IsEnabled && !string.IsNullOrEmpty(BufferSizeTB.Text) && !QOL.CheckSyntax(BufferSizeTB)) {MessageBoxAPI.Debug("invalid syntax at BufferSize");return;}
+            if (AudioBitrateTB.IsEnabled && !string.IsNullOrEmpty(AudioBitrateTB.Text) && !QOL.CheckSyntax(AudioBitrateTB)) {MessageBoxAPI.Debug("invalid syntax at AudioBitrate");return;}
+            if (CQTB.IsEnabled && !string.IsNullOrEmpty(CQTB.Text) && !CQTB.Text.All(char.IsDigit)) {MessageBoxAPI.Debug("invalid syntax at CQ/CQP constant");return;}
+            if (WidthTB.IsEnabled && !string.IsNullOrEmpty(WidthTB.Text) && !WidthTB.Text.All(char.IsDigit)) {MessageBoxAPI.Debug("invalid syntax at Resolution");return;}
+            if (HeightTB.IsEnabled && !string.IsNullOrEmpty(HeightTB.Text) && !HeightTB.Text.All(char.IsDigit)) {MessageBoxAPI.Debug("invalid syntax at Resolution");return;}
+            if (FramerateTB.IsEnabled && !string.IsNullOrEmpty(FramerateTB.Text) && !FramerateTB.Text.All(char.IsDigit)) {MessageBoxAPI.Debug("invalid syntax at Framerate");return;}
+            if (StartSecondTB.IsEnabled && !string.IsNullOrEmpty(StartSecondTB.Text) && QOL.StringToDouble(StartSecondTB.Text) == null) {MessageBoxAPI.Debug("invalid syntax at Starting time");return;}
+            if (StartMinuteTB.IsEnabled && !string.IsNullOrEmpty(StartMinuteTB.Text) && !StartMinuteTB.Text.All(char.IsDigit)) {MessageBoxAPI.Debug("invalid syntax at Starting time");return;}
+            if (StartHourTB.IsEnabled && !string.IsNullOrEmpty(StartHourTB.Text) && !StartHourTB.Text.All(char.IsDigit)) {MessageBoxAPI.Debug("invalid syntax at Starting time");return;}
+            if (!string.IsNullOrEmpty(EndSecondTB.Text) && EndSecondTB.Text != "--" && QOL.StringToDouble(EndSecondTB.Text) == null) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
+            if (!string.IsNullOrEmpty(EndMinuteTB.Text) && EndMinuteTB.Text != "--" && !EndMinuteTB.Text.All(char.IsDigit)) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
+            if (!string.IsNullOrEmpty(EndHourTB.Text) && EndHourTB.Text != "--" && !EndHourTB.Text.All(char.IsDigit)) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
+            if (QOL.StringToDouble(StartSecondTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Starting time");return;}
+            if (QOL.StringToDouble(StartMinuteTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Starting time");return;}
+            if (QOL.StringToDouble(EndSecondTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
+            if (QOL.StringToDouble(EndMinuteTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
+            // CONTINUME THIS LOL
         }
     }
 }

@@ -394,6 +394,7 @@
                         Background="#021775"
                         Foreground="white"
                         BorderThickness="0"
+                        Click="Done"
                         Margin="0"/>
             </Grid>
         </Border>
