@@ -171,7 +171,7 @@ namespace VideoProcessor
             if (!isInit) {return;}
             string? a = VideoEncoderCB.SelectedItem?.ToString();
             if (a==null) {return;}
-            if (a == "No encoding")
+            if (a == "No encoding" || a == "gif")
             {
                 VideoRateControlCB.IsEnabled = false;
                 VideoBitrateTB.IsEnabled = false;
@@ -188,11 +188,19 @@ namespace VideoProcessor
                 VideoEncodingSpeedCB.IsEnabled = true;
                 FFmpegArg.supportedVideoEncoders? b = FFmpegArg.StringToVideoEncoder(a);
                 if (b==null) {return;}
-                VideoEncodingSpeedCB.Items.Clear();
-                foreach (FFmpegArg.encodingPresets c in FFmpegArg.GetSupportedEncoderPresets((FFmpegArg.supportedVideoEncoders)b))
+                if (b==FFmpegArg.supportedVideoEncoders.libaom_av1)
                 {
-                    VideoEncodingSpeedCB.Items.Add(c.ToString());
+                    VideoEncodingSpeedCB.IsEnabled = false;
+                } else
+                {
+                    VideoEncodingSpeedCB.IsEnabled = true;
+                    VideoEncodingSpeedCB.Items.Clear();
+                    foreach (FFmpegArg.encodingPresets c in FFmpegArg.GetSupportedEncoderPresets((FFmpegArg.supportedVideoEncoders)b))
+                    {
+                        VideoEncodingSpeedCB.Items.Add(c.ToString());
+                    }
                 }
+
                 
                 CPUUsedCB.IsEnabled = FFmpegArg.CheckCpuUsedCompatibility((FFmpegArg.supportedVideoEncoders)b);
             }
