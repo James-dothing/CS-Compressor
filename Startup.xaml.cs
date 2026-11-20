@@ -19,7 +19,8 @@ namespace CsCompressor
 
         private void SelectFile(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog dialog = new OpenFileDialog{Title = "Select a file", Filter = "All files (*.*)|*.*"};
+            OpenFileDialog dialog = new OpenFileDialog{Title = "Select a file",
+            Filter = "Supported files (*.mp4;*.mov;*.gif;*.mkv;*.webm;*.ogg;*.aac;*.wav;*.flac;*.mp3;*.m4a;*.opus;*.alac;*.avi;*.flv)|*.mp4;*.mov;*.gif;*.mkv;*.webm;*.ogg;*.aac;*.wav;*.flac;*.mp3;*.m4a;*.opus;*.alac;*.avi;*.flv|All files (*.*)|*.*"};
 
             if (dialog.ShowDialog() == true)
             {

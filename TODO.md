@@ -1,6 +1,7 @@
 # v1
 - [x] fix bug with gif format then selecting no encoder then selecing gif encoder again the ui will bug and maybe there some other idk just find it
-- [ ] make the audio encoder tab actually works
+- [x] make the audio encoder tab actually works
+- [ ] make syntax checker
 - [ ] make the compress button actually work
 - [ ] FINNISH THIS GOSH DANG PROJECT
 
