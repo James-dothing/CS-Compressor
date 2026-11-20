@@ -156,6 +156,19 @@ namespace VideoProcessor
                         AudioBitrateTB.IsEnabled = true;
                         AudioChannelAmountCB.IsEnabled = true;
                     }
+
+                    // AUDIO ######################################################
+
+                    if (a == FFmpegArg.supportedOutputFormats.GIF) {return;} // GIFs doesn't have audio lol
+                    AudioEncoderCB.Items.Clear();
+                    FFmpegArg.supportedAudioEncoders[] allAudioEncoders = FFmpegArg.GetAllCompatibleAudioEncoders((FFmpegArg.supportedOutputFormats)a);
+                    foreach (FFmpegArg.supportedAudioEncoders audioEncoder in allAudioEncoders)
+                    {
+                        AudioEncoderCB.Items.Add(audioEncoder.ToString());
+                    }
+                    AudioEncoderCB.Items.Add("No encoding");
+                    AudioEncoderCB.SelectedIndex = 0;
+
                 }
             }
         
@@ -210,8 +223,36 @@ namespace VideoProcessor
             if (!isInit) {return;}
             RateControlHandler();
         }
+        private void AudioEncoderChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!isInit) {return;}
+            string? AudioEncoder = AudioEncoderCB.SelectedItem?.ToString();
+            if (AudioEncoder==null) {return;}
+            if (AudioEncoder == "No encoding")
+            {
+                AudioBitrateTB.IsEnabled = false;
+                AudioChannelAmountCB.IsEnabled = false;
+            } else
+            {
+                AudioBitrateTB.IsEnabled = true;
+                AudioChannelAmountCB.IsEnabled = true;
+            }
+        }
+        private void InputBrowse(object sender, RoutedEventArgs e)
+        {
+            if (!isInit) {return;}
+
+            OpenFileDialog dialog = new OpenFileDialog{Title = "Select a file",
+            Filter = "Supported files (*.mp4;*.mov;*.gif;*.mkv;*.webm;*.ogg;*.aac;*.wav;*.flac;*.mp3;*.m4a;*.opus;*.alac;*.avi;*.flv)|*.mp4;*.mov;*.gif;*.mkv;*.webm;*.ogg;*.aac;*.wav;*.flac;*.mp3;*.m4a;*.opus;*.alac;*.avi;*.flv|All files (*.*)|*.*"};
+
+            if (dialog.ShowDialog() == true)
+            {
+                pathTB.Text = dialog.FileName;
+            }
+        }
         private void OutputBrowse(object sender, RoutedEventArgs e)
         {
+            if (!isInit) {return;}
             string? o = QOL.GetStringFromComboBox(OutputFormatCB);
             if (o == null)
             {

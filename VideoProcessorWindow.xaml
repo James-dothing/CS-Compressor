@@ -92,6 +92,7 @@
                                 <Button x:Name="BrowseButton"
                                         Grid.Column="1"
                                         Content="Browse..."
+                                        Click="InputBrowse"
                                         Margin="0,4,0,10"/>
                             </Grid>
 
@@ -270,7 +271,7 @@
                             <TextBlock Text="Audio encoder"
                                        Style="{StaticResource FieldTitle}"/>
 
-                            <ComboBox x:Name="AudioEncoderCB">
+                            <ComboBox x:Name="AudioEncoderCB" SelectionChanged="AudioEncoderChanged">
                                 <ComboBoxItem Content="No encoding"/>
                             </ComboBox>
 
@@ -282,7 +283,7 @@
                             <TextBlock Text="Audio channels"
                                        Style="{StaticResource FieldTitle}"/>
 
-                            <ComboBox x:Name="AudioChannelAmountCB">
+                            <ComboBox x:Name="AudioChannelAmountCB" SelectedIndex="1">
                                 <ComboBoxItem Content="1"/>
                                 <ComboBoxItem Content="2"/>
                             </ComboBox>

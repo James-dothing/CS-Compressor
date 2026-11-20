@@ -1,4 +1,4 @@
-// This is hell, I spent a week making this 500 line shit ass class
+// This is hell, I spent a week making this 600 line shit ass class
 using System.IO;
 public class FFmpegArg
 {
@@ -26,11 +26,11 @@ public class FFmpegArg
     {
         copy, // no encoding!
         aac, // aac
-        flac,  // flac & ogg
         libmp3lame, // mp3
         libvorbis, libopus, libspeex, // ogg
         pcm_s16le, pcm_s24le, pcm_s32le, pcm_f32le, pcm_f64le, pcm_alaw, // wav
-        alac
+        alac,
+        flac  // flac & ogg
     }
     public enum supportedOutputFormats
     {
@@ -106,6 +106,16 @@ public class FFmpegArg
         }
         return null;
     }
+    public static bool MultipleAudioSupport(supportedOutputFormats target)
+    {
+        switch (target.ToString())
+        {
+            case ("AAC" or "WAV" or "FLAC" or "MP3"):
+                return false;
+            default:
+                return true;
+        }
+    }
     public static bool IsFormatVideo(supportedOutputFormats target)
     {
         switch (target)
@@ -125,6 +135,23 @@ public class FFmpegArg
             default:
                 return false;
         }
+    }
+    public static supportedAudioEncoders[] GetAllCompatibleAudioEncoders(supportedOutputFormats target)
+    {
+        supportedAudioEncoders[] result = new supportedAudioEncoders[] {};
+        supportedAudioEncoders[] all = Enum.GetValues<supportedAudioEncoders>();
+        foreach (supportedAudioEncoders i in all)
+        {
+            if (i != supportedAudioEncoders.copy)
+            {
+                if (CheckAudioCompatibility(i, target) ?? false)
+                {
+                    result = [..result, i];
+                }
+            }
+        }
+
+        return result;
     }
     public static bool? CheckVideoCompatibility(supportedVideoEncoders videoEncoder, supportedOutputFormats outputFormat, string? ffprobePathArg=null, string? inputPathArg=null)
     {

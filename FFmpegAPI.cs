@@ -1,3 +1,4 @@
+// most of the ffmpeg trickery are in /FFmpegArgumentMaker.cs
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
@@ -7,8 +8,6 @@ public class FFmpegAPI
 {
     public static String? ffmpegPath;
     public static String? ffprobePath;
-    public static String? magickPath;
-    public static String? testVideoPath;
     public static String[] availableVideoEncoders = {"libx264", "libx265", "libaom_av1", "libvpx", "libvpx_vp9","gif"};
     public static VideoProcessingWindow? currentVIdeoProcessingWindow;
 
