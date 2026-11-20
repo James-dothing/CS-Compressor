@@ -1,5 +1,5 @@
 # v1
-- [ ] fix bug with gif format then selecting no encoder then selecing gif encoder again the ui will bug and maybe there some other idk just find it
+- [x] fix bug with gif format then selecting no encoder then selecing gif encoder again the ui will bug and maybe there some other idk just find it
 - [ ] make the audio encoder tab actually works
 - [ ] in the trims tab make the user experience better
 - [ ] add save and load feature
