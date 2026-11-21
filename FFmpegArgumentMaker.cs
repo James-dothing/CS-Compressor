@@ -76,6 +76,7 @@ public class FFmpegArg
     public bool? defaultOnError;
     public static supportedVideoEncoders? StringToVideoEncoder(String target)
     {
+        if (target == "No encoding") {return supportedVideoEncoders.copy;}
         if (Enum.TryParse<supportedVideoEncoders>(target, out supportedVideoEncoders result))
         {
             return result;
@@ -84,6 +85,7 @@ public class FFmpegArg
     }
     public static supportedAudioEncoders? StringToAudioEncoder(String target)
     {
+        if (target == "No encoding") {return supportedAudioEncoders.copy;}
         if (Enum.TryParse<supportedAudioEncoders>(target, out supportedAudioEncoders result))
         {
             return result;
@@ -93,6 +95,22 @@ public class FFmpegArg
     public static supportedOutputFormats? StringToOutputFormat(String target)
     {
         if (Enum.TryParse<supportedOutputFormats>(target, out supportedOutputFormats result))
+        {
+            return result;
+        }
+        return null;
+    }
+    public static videoRateControlTypes? StringToRateControlType(String target)
+    {
+        if (Enum.TryParse<videoRateControlTypes>(target, out videoRateControlTypes result))
+        {
+            return result;
+        }
+        return null;
+    }
+    public static scalingFlags? StringToScalingFlag(String target)
+    {
+        if (Enum.TryParse<scalingFlags>(target, out scalingFlags result))
         {
             return result;
         }
@@ -162,7 +180,7 @@ public class FFmpegArg
             string[] result = ProcessAPI.Start(ffprobePathArg, $" -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 \"{inputPathArg}\"");
             if (result[1] == "0")
             {
-                switch (result[0])
+                switch (result[0].Trim())
                 {
                     case ("h264"):
                         return CheckVideoCompatibility(supportedVideoEncoders.libx264, outputFormat);
@@ -228,7 +246,7 @@ public class FFmpegArg
             string[] result = ProcessAPI.Start(ffprobePathArg, $" -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 \"{inputPathArg}\"");
             if (result[1] == "0")
             {
-                switch (result[0])
+                switch (result[0].Trim())
                 {
                     case ("aac"):
                         return CheckAudioCompatibility(supportedAudioEncoders.aac, outputFormat);
@@ -420,7 +438,7 @@ public class FFmpegArg
         if (ffprobePath==null) {MessageBoxAPI.Error("FFprobePath not found while converting ffmpeg arg class to string");return null;}
         //if (videoEncoder==null) {MessageBoxAPI.Error("VideoEncoder not found while converting ffmpeg arg class to string");return null;}
 
-        if (videoFramerate==null||videoResolution==null|| !(accurateColorGif ?? false))
+        if (videoFramerate == null && videoResolution == null && accurateColorGif != true)
         {result += " -map \"0:v:0?\" -map \"0:a:0?\"";}
         else
         {result += " -map \"0:a:0?\"";}
@@ -454,99 +472,112 @@ public class FFmpegArg
                 {
                     case videoRateControlTypes.CBR:
                         // constant bitrate
-                        if (videoBitrate==null) {MessageBoxAPI.Error("VideoBitrate not found while converting ffmpeg arg class to string");return null;}
-
-                        switch (videoEncoder)
+                        if (videoBitrate!=null)
                         {
-                            case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
-                                //nvidia
-                                result += " -rc cbr -b:v " + videoBitrate;
-                                break;
-                            case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
-                                //amd
-                                result += " -rc cbr -b:v " + videoBitrate; 
-                                break;
-                            default:
-                                result += $" -b:v {videoBitrate} -minrate {videoBitrate} -maxrate {videoBitrate}";
-                                if (BufferSize!=null){result += " -bufsize " + BufferSize;}
-                                break;
+                            switch (videoEncoder)
+                            {
+                                case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
+                                    //nvidia
+                                    result += " -rc cbr -b:v " + videoBitrate;
+                                    break;
+                                case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
+                                    //amd
+                                    result += " -rc cbr -b:v " + videoBitrate; 
+                                    break;
+                                default:
+                                    result += $" -b:v {videoBitrate} -minrate {videoBitrate} -maxrate {videoBitrate}";
+                                    if (BufferSize!=null){result += " -bufsize " + BufferSize;}
+                                    break;
+                            }
+                        } else
+                        {
+                            MessageBoxAPI.Debug("video bitrate value is NULL!\nproceeding the default value\n if you think this was a mistake, you can abort this and reconfig");
                         }
-
                         break;
                     case videoRateControlTypes.VBR:
-
-                        if (videoBitrate==null) {MessageBoxAPI.Error("VideoBitrate not found while converting ffmpeg arg class to string");return null;}
-
-                        switch (videoEncoder)
+                        if (videoBitrate!=null)
                         {
-                            case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
-                                //nvidia
-                                result += " -rc vbr";
-                                break;
-                            case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
-                                //amd
-                                result += " -rc vbr_peak";
-                                break;
+                            switch (videoEncoder)
+                            {
+                                case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
+                                    //nvidia
+                                    result += " -rc vbr";
+                                    break;
+                                case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
+                                    //amd
+                                    result += " -rc vbr_peak";
+                                    break;
+                            }
+                            result += " -b:v " + videoBitrate;
+                            if (MinimumVideoBitrate!=null) {result+=" -minrate "+MinimumVideoBitrate;} // optional
+                            if (MaximumVideoBitrate!=null) {result+=" -maxrate "+MaximumVideoBitrate;}
+                        } else
+                        {
+                            MessageBoxAPI.Debug("video bitrate value is NULL!\nproceeding the default value\n if you think this was a mistake, you can abort this and reconfig");
                         }
-                        result += " -b:v " + videoBitrate;
-                        if (MinimumVideoBitrate!=null) {result+=" -minrate "+MinimumVideoBitrate;} // optional
-                        if (MaximumVideoBitrate!=null) {result+=" -maxrate "+MaximumVideoBitrate;}
                         break;
                     case videoRateControlTypes.CQP:
 
-                        if (QPConstant==null) {MessageBoxAPI.Error("QPConstant not found while converting ffmpeg arg class to string");return null;}
-
-                        switch (videoEncoder)
+                        if (QPConstant!=null)
                         {
-                            case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
-                                //nvidia
-                                result += " -rc constqp -qp " + QPConstant;
-                                break;
-                            case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
-                                //amd
-                                //not even gonna bother adding option for i and p frame
-                                result += $" -rc cqp -qp_i {QPConstant} -qp_p {QPConstant}";
-                                break;
-                            case supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv:
-                                //intel
-                                result += " -qscale:v 1 -global_quality " + QPConstant;
-                                break;
-                            case supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9:
-                                MessageBoxAPI.Error("your library does not support CQP rate control this happen while converting ffmpeg arg class to string");
-                                return null;
+                            switch (videoEncoder)
+                            {
+                                case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
+                                    //nvidia
+                                    result += " -rc constqp -qp " + QPConstant;
+                                    break;
+                                case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
+                                    //amd
+                                    //not even gonna bother adding option for i and p frame
+                                    result += $" -rc cqp -qp_i {QPConstant} -qp_p {QPConstant}";
+                                    break;
+                                case supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv:
+                                    //intel
+                                    result += " -qscale:v 1 -global_quality " + QPConstant;
+                                    break;
+                                case supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9:
+                                    MessageBoxAPI.Error("your library does not support CQP rate control this happen while converting ffmpeg arg class to string");
+                                    return null;
 
-                            default:
-                                result += " -qp " + QPConstant;
-                                break;
+                                default:
+                                    result += " -qp " + QPConstant;
+                                    break;
+                            }
+                        } else
+                        {
+                            MessageBoxAPI.Debug("CQP value is NULL!\nproceeding the default value\n if you think this was a mistake, you can abort this and reconfig");
                         }
                         break;
                     case videoRateControlTypes.CQ:
-                        if (CQConstant==null) {MessageBoxAPI.Error("CQConstant not found while converting ffmpeg arg class to string");return null;}
-
-                        switch (videoEncoder)
+                        if (CQConstant!=null)
                         {
-                            case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
-                                //nvidia
-                                result += $" -rc vbr -cq {CQConstant} -b:v 0";
-                                break;
-                            case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
-                                //amd
-                                result += " -rc qvbr -qvbr_quality_level " + CQConstant;
-                                break;
-                            case supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv:
-                                //intel
-                                result += " -global_quality " + CQConstant;
-                                break;
-                            case supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9:
-                                // idk
-                                result += $" -crf {CQConstant} -b:v 0";
-                                break;
-                            default:
-                                result += " -crf " + CQConstant;
-                                break;
+                            switch (videoEncoder)
+                            {
+                                case supportedVideoEncoders.h264_nvenc or supportedVideoEncoders.hevc_nvenc or supportedVideoEncoders.av1_nvenc:
+                                    //nvidia
+                                    result += $" -rc vbr -cq {CQConstant} -b:v 0";
+                                    break;
+                                case supportedVideoEncoders.h264_amf or supportedVideoEncoders.hevc_amf or supportedVideoEncoders.av1_amf:
+                                    //amd
+                                    result += " -rc qvbr -qvbr_quality_level " + CQConstant;
+                                    break;
+                                case supportedVideoEncoders.h264_qsv or supportedVideoEncoders.hevc_qsv or supportedVideoEncoders.av1_qsv:
+                                    //intel
+                                    result += " -global_quality " + CQConstant;
+                                    break;
+                                case supportedVideoEncoders.libaom_av1 or supportedVideoEncoders.libvpx or supportedVideoEncoders.libvpx_vp9:
+                                    // idk
+                                    result += $" -crf {CQConstant} -b:v 0";
+                                    break;
+                                default:
+                                    result += " -crf " + CQConstant;
+                                    break;
+                            }
+                        } else
+                        {
+                            MessageBoxAPI.Debug("CQ value is NULL!\nproceeding the default value\n if you think this was a mistake, you can abort this and reconfig");
                         }
                         break;
-
                 }
             }
 
@@ -621,9 +652,11 @@ public class FFmpegArg
                 return null;
             }
 
-
-            if (audioBitrate!=null) {result += " -b:a " + audioBitrate;}
-            if (audioChannelAmount!=null) {result += " -ac " + audioChannelAmount;}
+            if (audioEncoder != supportedAudioEncoders.copy)
+            {
+                if (audioBitrate!=null) {result += " -b:a " + audioBitrate;}
+                if (audioChannelAmount!=null) {result += " -ac " + audioChannelAmount;}
+            }
         }
 
         if (copyMetaData ?? true)
@@ -644,7 +677,7 @@ public class FFmpegArg
                 break;
         }
 
-        result += $" \"{outputPath}\"";
+        result += $" -progress pipe:1 \"{outputPath}\"";
 
         string textPathDir = Path.GetDirectoryName(ffprobePath)!;
         string textPath = Path.Combine(textPathDir, "LastFFmpegArg.txt");

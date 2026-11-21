@@ -291,7 +291,119 @@ namespace VideoProcessor
             if (QOL.StringToDouble(StartMinuteTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Starting time");return;}
             if (QOL.StringToDouble(EndSecondTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
             if (QOL.StringToDouble(EndMinuteTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
-            // CONTINUME THIS LOL
+
+            string inputPath = pathTB.Text;
+            string outputPath = OutputPathTB.Text;
+            FFmpegArg.supportedOutputFormats outputFormat = (FFmpegArg.supportedOutputFormats)FFmpegArg.StringToOutputFormat((string)QOL.GetStringFromComboBox(OutputFormatCB)!)!;
+            FFmpegArg.supportedVideoEncoders? videoEncoder = VideoEncoderCB.IsEnabled ? FFmpegArg.StringToVideoEncoder(VideoEncoderCB.SelectedItem?.ToString()!) : null;
+            FFmpegArg.videoRateControlTypes? rateControl = VideoRateControlCB.IsEnabled ? FFmpegArg.StringToRateControlType(QOL.GetStringFromComboBox(VideoRateControlCB)!) : null;
+            string? bitrate = VideoBitrateTB.IsEnabled ? VideoBitrateTB.Text : null;
+            bitrate = string.IsNullOrEmpty(bitrate) ? null : bitrate;
+            string? QConstant = CQTB.IsEnabled ? CQTB.Text : null;
+            QConstant = string.IsNullOrEmpty(QConstant) ? null : QConstant;
+            string? minBR = MinimumVideoBitrateTB.IsEnabled ? MinimumVideoBitrateTB.Text : null;
+            minBR = string.IsNullOrEmpty(minBR) ? null : minBR;
+            string? maxBR = MaximumVideoBitrateTB.IsEnabled ? MaximumVideoBitrateTB.Text : null;
+            maxBR = string.IsNullOrEmpty(maxBR) ? null : maxBR;
+            string? bufsize = BufferSizeTB.IsEnabled ? BufferSizeTB.Text : null;
+            bufsize = string.IsNullOrEmpty(bufsize) ? null : bufsize;
+            FFmpegArg.encodingPresets? encodingPreset = VideoEncodingSpeedCB.IsEnabled ? 
+            (VideoEncodingSpeedCB.SelectedItem?.ToString() != null ?
+                FFmpegArg.StringToEncoderPreset(VideoEncodingSpeedCB.SelectedItem.ToString()!)
+                :
+                null
+            )
+            :
+            null;
+            string? cpuUsed = CPUUsedCB.IsEnabled ? (CPUUsedCB.SelectedItem?.ToString() == null ? null : QOL.GetStringFromComboBox(CPUUsedCB)) : null;
+            cpuUsed = string.IsNullOrEmpty(cpuUsed) ? null : cpuUsed;
+            string? width = WidthTB.IsEnabled ? WidthTB.Text : null;
+            width = string.IsNullOrEmpty(width) ? null : width;
+            string? height = HeightTB.IsEnabled ? HeightTB.Text : null;
+            height = string.IsNullOrEmpty(height) ? null : height;
+            string[]? resolution = null;
+            if (! (width == null && height == null))
+            {
+                width = width == null ? "-2" : width; // if width is null width = "-2"
+                height = height == null ? "-2" : height;
+                resolution = [width, height];
+            }
+            string? framerate = FramerateTB.IsEnabled ? FramerateTB.Text : null;
+            framerate = string.IsNullOrEmpty(framerate) ? null : framerate;
+            string? scaling = VideoScalingFlagCB.IsEnabled ? QOL.GetStringFromComboBox(VideoScalingFlagCB): null;
+            FFmpegArg.scalingFlags? scalingFlag = scaling == null ? null : FFmpegArg.StringToScalingFlag(scaling);
+
+            bool? ac = AccurateColorGifCB.IsEnabled ? AccurateColorGifCB.IsChecked : null;
+
+            FFmpegArg.supportedAudioEncoders? audioEncoder = AudioEncoderCB.IsEnabled ? FFmpegArg.StringToAudioEncoder(AudioEncoderCB.SelectedItem?.ToString()!) : null;
+
+            string? audioBitrate = AudioBitrateTB.IsEnabled ? AudioBitrateTB.Text : null;
+            audioBitrate = string.IsNullOrEmpty(audioBitrate) ? null : audioBitrate;
+
+            string? acc = QOL.GetStringFromComboBox(AudioChannelAmountCB);
+
+            bool? disableAudio = DisableAudioCB.IsEnabled ? DisableAudioCB.IsChecked : null;
+
+            string startSecond = String.IsNullOrEmpty(StartSecondTB.Text) ? "00" : (StartSecondTB.Text.Length == 1 ? "0" + StartSecondTB.Text : StartSecondTB.Text);
+            string startMinute = String.IsNullOrEmpty(StartMinuteTB.Text) ? "00" : (StartMinuteTB.Text.Length == 1 ? "0" + StartMinuteTB.Text : StartMinuteTB.Text);
+            string startHour = String.IsNullOrEmpty(StartHourTB.Text) ? "00" :  StartHourTB.Text;
+            string startingTime = startHour + ":" + startMinute + ":" + startSecond;
+            string? EndSecond = String.IsNullOrEmpty(EndSecondTB.Text) || EndSecondTB.Text == "--" ? null : (EndSecondTB.Text.Length == 1 ? "0" + EndSecondTB.Text : EndSecondTB.Text);
+            string? EndMinute = String.IsNullOrEmpty(EndMinuteTB.Text) || EndMinuteTB.Text == "--" ? null : (EndMinuteTB.Text.Length == 1 ? "0" + EndMinuteTB.Text : EndMinuteTB.Text);
+            string? EndHour = String.IsNullOrEmpty(EndHourTB.Text) || EndHourTB.Text == "--" ? null :  EndHourTB.Text;
+            string? EndingTime = (EndHour != null || EndMinute != null || EndSecond != null ) ? ((EndHour ?? "00") + ":" + (EndMinute ?? "00") + ":" + (EndSecond ?? "00")) : null;
+            //MessageBoxAPI.Debug(EndHour ?? "00" + ":" + EndMinute ?? "00" + ":" + EndSecond ?? "00");
+            double duration = -1;
+            if (EndingTime == null)
+            {
+                string[] durationGettingAttmpt = ProcessAPI.Start(FFmpegAPI.ffprobePath!, $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{pathTB.Text}\"");
+                if (durationGettingAttmpt[1] != "0")
+                {
+                    MessageBoxAPI.Error("Something Went Wrong!!!\n" + durationGettingAttmpt[2]);
+                    return;
+                }
+                double realStartingTime = (double)QOL.StringToDouble(startSecond)! + ((double)QOL.StringToDouble(startMinute)! * 60) + ((double)QOL.StringToDouble(startHour)! * 3600);
+                duration = (double)QOL.StringToDouble(durationGettingAttmpt[0])! - realStartingTime;
+            } else
+            {
+                double realStartingTime = (double)QOL.StringToDouble(startSecond)! + ((double)QOL.StringToDouble(startMinute)! * 60) + ((double)QOL.StringToDouble(startHour)! * 3600);
+                double realEndTime = (double)QOL.StringToDouble(EndSecond ?? "0")! + ((double)QOL.StringToDouble(EndMinute ?? "0")! * 60) + ((double)QOL.StringToDouble(EndHour ?? "0")! * 3600);
+                duration = realEndTime - realStartingTime;
+            }
+            if (duration < 0) {MessageBoxAPI.Debug("the duration is negative!\nmake sure you input starting time and ending time correctly");return;}
+            bool copyMetaData = CopyMetaDataCB.IsChecked ?? true;
+            bool showLog = EnableLog.IsChecked ?? false;
+            FFmpegArg fullArgument = new FFmpegArg()
+            {
+                ffprobePath=FFmpegAPI.ffprobePath,
+                inputPath=inputPath,
+                outputPath=outputPath,
+                startTime=startingTime,
+                endTime=EndingTime,
+                loggingMode="error",
+                outputFormat=outputFormat,
+                videoEncoder=videoEncoder,
+                videoRateControl=rateControl,
+                videoBitrate=bitrate,
+                CQConstant=QConstant,
+                QPConstant=QConstant,
+                MinimumVideoBitrate=minBR,
+                MaximumVideoBitrate=maxBR,
+                BufferSize=bufsize,
+                videoEncodingSpeed=encodingPreset,
+                cpuUsed=cpuUsed,
+                videoResolution=resolution,
+                videoscalingflag=scalingFlag,
+                videoFramerate=framerate,
+                accurateColorGif=ac,
+                disableAudio=disableAudio,
+                audioEncoder=audioEncoder,
+                audioBitrate=audioBitrate,
+                audioChannelAmount=acc,
+                copyMetaData=copyMetaData
+            };
+            
+            _ = FFmpegAPI.Start((string)fullArgument.ToString()!, showLog, duration);
         }
     }
 }
