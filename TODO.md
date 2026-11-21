@@ -2,6 +2,8 @@
 - [x] fix bug with gif format then selecting no encoder then selecing gif encoder again the ui will bug and maybe there some other idk just find it
 - [x] make the audio encoder tab actually works
 - [x] make syntax checker
+- [ ] fix ffmpeg memory leak
+- [ ] make a page for ffmpeg progression
 - [ ] make the compress button actually work
 - [ ] FINNISH THIS GOSH DANG PROJECT
 
