@@ -2,9 +2,14 @@
 - [x] fix bug with gif format then selecting no encoder then selecing gif encoder again the ui will bug and maybe there some other idk just find it
 - [x] make the audio encoder tab actually works
 - [x] make syntax checker
-- [ ] fix ffmpeg memory leak
-- [ ] make a page for ffmpeg progression
-- [ ] make the compress button actually work
+- [x] fix ffmpeg memory leak
+- [x] remove show log cuz it's USELESS
+- [x] NOT make the program crash on user error PLEASe
+- [ ] message box user when select no encoding
+- [x] fix error on no audio
+- [x] make a page for ffmpeg progression
+- [x] check existing output
+- [x] make the compress button actually work
 - [ ] FINNISH THIS GOSH DANG PROJECT
 
 # v1.1 (after v1 has been release)

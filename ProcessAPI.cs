@@ -12,6 +12,7 @@ public class ProcessAPI()
             p.StartInfo.Arguments = " " + argument; // " " + because incase idk lool
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = noWindow;
             p.Start();
             if (p==null) {return new string[] {"", "1", "process is null"};} // {output, exit status, error message}

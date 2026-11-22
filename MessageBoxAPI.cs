@@ -22,4 +22,15 @@ public class MessageBoxAPI
             MessageBox.Show(text, "debug message:", MessageBoxButton.OK);
         });
     }
+    public static bool YesNo(string text)
+    {
+        MessageBoxResult result = MessageBox.Show(
+        text,
+        "CSCompressor",
+        MessageBoxButton.YesNo,
+        MessageBoxImage.Question
+        );
+
+        return result == MessageBoxResult.Yes ? true : false;
+    }
 }

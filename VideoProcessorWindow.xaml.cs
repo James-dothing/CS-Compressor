@@ -1,10 +1,12 @@
 // using System.IO;
+using CsCompressor;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.ComponentModel;
 
-namespace VideoProcessor
+namespace CsCompressor
 {
     public partial class VideoProcessingWindow : Window
     {
@@ -15,6 +17,10 @@ namespace VideoProcessor
             InitializeComponent();
             isInit = true;
             RateControlHandler();
+        }
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            Application.Current.Shutdown();
         }
         private string path = "";
         public void SetPath(string patharg)
@@ -185,6 +191,7 @@ namespace VideoProcessor
             if (!isInit) {return;}
             string? a = VideoEncoderCB.SelectedItem?.ToString();
             if (a==null) {return;}
+            if (a == "No encoding") {MessageBoxAPI.Debug("Please check that your video codec is compatible with targeted output format or else the processing will breaks");}
             if (a == "No encoding" || a == "gif")
             {
                 VideoRateControlCB.IsEnabled = false;
@@ -231,6 +238,7 @@ namespace VideoProcessor
             if (AudioEncoder==null) {return;}
             if (AudioEncoder == "No encoding")
             {
+                MessageBoxAPI.Debug("Please check that your audio codec is compatible with targeted output format or else the processing will breaks");
                 AudioBitrateTB.IsEnabled = false;
                 AudioChannelAmountCB.IsEnabled = false;
             } else
@@ -271,6 +279,16 @@ namespace VideoProcessor
         {
             if (string.IsNullOrEmpty(pathTB.Text) || !File.Exists(pathTB.Text)) {MessageBoxAPI.Debug("The input file doesn't exist!");return;}
             if (string.IsNullOrEmpty(OutputPathTB.Text)) {MessageBoxAPI.Debug("The saving file path doesn't exist!");return;}
+            string inputPath = pathTB.Text;
+            string outputPath = OutputPathTB.Text;
+            if (inputPath == outputPath) {MessageBoxAPI.Debug("input path and output path cannot be the same");return;}
+            if (File.Exists(outputPath))
+            {
+                if (!MessageBoxAPI.YesNo("a file already exists at the output path. do you want to overwrite it?"))
+                {
+                    return;
+                }
+            }
 
             if (VideoBitrateTB.IsEnabled && !string.IsNullOrEmpty(VideoBitrateTB.Text) && !QOL.CheckSyntax(VideoBitrateTB)) {MessageBoxAPI.Debug("invalid syntax at VideoBitrate");return;}
             if (MinimumVideoBitrateTB.IsEnabled && !string.IsNullOrEmpty(MinimumVideoBitrateTB.Text) && !QOL.CheckSyntax(MinimumVideoBitrateTB)) {MessageBoxAPI.Debug("invalid syntax at MinimumVideoBitrate");return;}
@@ -292,8 +310,6 @@ namespace VideoProcessor
             if (QOL.StringToDouble(EndSecondTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
             if (QOL.StringToDouble(EndMinuteTB.Text) >= 60) {MessageBoxAPI.Debug("invalid syntax at Ending time");return;}
 
-            string inputPath = pathTB.Text;
-            string outputPath = OutputPathTB.Text;
             FFmpegArg.supportedOutputFormats outputFormat = (FFmpegArg.supportedOutputFormats)FFmpegArg.StringToOutputFormat((string)QOL.GetStringFromComboBox(OutputFormatCB)!)!;
             FFmpegArg.supportedVideoEncoders? videoEncoder = VideoEncoderCB.IsEnabled ? FFmpegArg.StringToVideoEncoder(VideoEncoderCB.SelectedItem?.ToString()!) : null;
             FFmpegArg.videoRateControlTypes? rateControl = VideoRateControlCB.IsEnabled ? FFmpegArg.StringToRateControlType(QOL.GetStringFromComboBox(VideoRateControlCB)!) : null;
@@ -372,7 +388,7 @@ namespace VideoProcessor
             }
             if (duration < 0) {MessageBoxAPI.Debug("the duration is negative!\nmake sure you input starting time and ending time correctly");return;}
             bool copyMetaData = CopyMetaDataCB.IsChecked ?? true;
-            bool showLog = EnableLog.IsChecked ?? false;
+            bool showLog = false;
             FFmpegArg fullArgument = new FFmpegArg()
             {
                 ffprobePath=FFmpegAPI.ffprobePath,
@@ -402,8 +418,9 @@ namespace VideoProcessor
                 audioChannelAmount=acc,
                 copyMetaData=copyMetaData
             };
-            
-            _ = FFmpegAPI.Start((string)fullArgument.ToString()!, showLog, duration);
+            string? fullArgString = fullArgument.ToString();
+            if (fullArgString==null) {return;}
+            _ = FFmpegAPI.Start((string)fullArgString, showLog, duration);
         }
     }
 }

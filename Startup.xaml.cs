@@ -3,7 +3,6 @@ using Microsoft.Win32;
 using System.Windows;
 using System.IO;
 // using System.Drawing.Text;
-using VideoProcessor;
 
 namespace CsCompressor
 {

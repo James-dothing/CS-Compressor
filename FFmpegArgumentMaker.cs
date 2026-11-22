@@ -449,7 +449,7 @@ public class FFmpegArg
             if (cc==null) {return null;}
             if (!((bool)cc))
             {
-                MessageBoxAPI.Error("Your file format does not support your video encoder,, this error occure while converting ffmpeg arg to string");
+                MessageBoxAPI.Error("Your file format does not support your video encoder,, this error occure while converting ffmpeg arg to string", false);
                 return null;
             }
 
@@ -648,7 +648,7 @@ public class FFmpegArg
                 result += " -c:a " + audioEncoder.ToString();
             } else
             {
-                MessageBoxAPI.Error("Your audio format does not support your encoder,, this error occur while converting ffmpeg arg to string");
+                MessageBoxAPI.Error("Your audio format does not support your encoder,, this error occur while converting ffmpeg arg to string", false);
                 return null;
             }
 

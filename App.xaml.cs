@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.Windows;
 
 namespace CsCompressor;
@@ -9,5 +10,9 @@ namespace CsCompressor;
 /// </summary>
 public partial class App : Application
 {
+    private void ApplicationExit(object sender, ExitEventArgs e)
+    {
+        FFmpegAPI.Abort();
+    }
 }
 
