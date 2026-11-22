@@ -6,7 +6,7 @@ namespace CsCompressor
     {
         public ProgressWindow()
         {
-            InitializeComponent();
+            InitializeComponent(); //
         }
 
         public async Task SetPercentageAsync(double percentage)

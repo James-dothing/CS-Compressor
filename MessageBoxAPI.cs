@@ -31,6 +31,6 @@ public class MessageBoxAPI
         MessageBoxImage.Question
         );
 
-        return result == MessageBoxResult.Yes ? true : false;
+        return result == MessageBoxResult.Yes ? true : false; //
     }
 }

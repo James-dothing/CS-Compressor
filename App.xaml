@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:CsCompressor"
              StartupUri="Startup.xaml"
              Exit="ApplicationExit">
+             
     <Application.Resources>
          
     </Application.Resources>

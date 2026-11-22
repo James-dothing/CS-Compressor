@@ -12,7 +12,7 @@ public partial class App : Application
 {
     private void ApplicationExit(object sender, ExitEventArgs e)
     {
-        FFmpegAPI.Abort();
+        FFmpegAPI.Abort(); //
     }
 }
 

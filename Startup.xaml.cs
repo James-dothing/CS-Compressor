@@ -23,7 +23,7 @@ namespace CsCompressor
 
             if (dialog.ShowDialog() == true)
             {
-                pathTB.Text = dialog.FileName;
+                pathTB.Text = dialog.FileName; //
             }
         }
 

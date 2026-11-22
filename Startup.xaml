@@ -9,6 +9,7 @@
         WindowStartupLocation="CenterScreen"
         Icon="frameworks/CSCompressor.ico">
 
+        
     <Grid>
         <StackPanel
             HorizontalAlignment="Center"

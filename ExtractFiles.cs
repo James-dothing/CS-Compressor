@@ -31,7 +31,7 @@ public class Extract
             resource.CopyTo(file);
 
             file.Dispose();
-            resource.Dispose();
+            resource.Dispose(); //
         }
 
         if (string.IsNullOrEmpty(realFileName)) {return filePath;} //if needed to be unzip then proceed the following code:

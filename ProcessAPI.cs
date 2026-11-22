@@ -9,7 +9,7 @@ public class ProcessAPI()
         {
             Process? p = new Process();
             p.StartInfo.FileName = fileName;
-            p.StartInfo.Arguments = " " + argument; // " " + because incase idk lool
+            p.StartInfo.Arguments = " " + argument; // " " + because incase idk lol
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.UseShellExecute = false;

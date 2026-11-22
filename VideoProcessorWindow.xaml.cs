@@ -420,7 +420,7 @@ namespace CsCompressor
             };
             string? fullArgString = fullArgument.ToString();
             if (fullArgString==null) {return;}
-            _ = FFmpegAPI.Start((string)fullArgString, showLog, duration);
+            _ = FFmpegAPI.Start((string)fullArgString, showLog, duration); //
         }
     }
 }
