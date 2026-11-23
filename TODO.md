@@ -11,12 +11,14 @@
 - [x] check existing output
 - [x] make the compress button actually work
 - [x] FINNISH THIS GOSH DANG PROJECT
+- [ ] upload the build to github
 
 # what's next?
 - [ ] add choose audio track
 - [ ] add loop gif
 - [ ] in the trims tab make the user experience better
 - [ ] add save and load feature
+- [ ] add light and night mode switcher
 - [ ] make an installer that window can recogize
 - [ ] make an uninstaller
 - [ ] make an updater
