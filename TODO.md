@@ -30,3 +30,4 @@
 - [ ] make an uninstaller
 - [ ] make an updater
 - [ ] make image to image compressor/converter
+- [ ] make it bwork on linux maybe?
