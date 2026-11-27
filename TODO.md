@@ -16,6 +16,7 @@
 # patch 1.1.0-alpha
 - [ ] ffprobe on choosing input file for copy video audio and check for audio is even exist???
 - [ ] fix progress window bug
+- [ ] edit csproj variable
 - [ ] more user friendly i guess??
 
 # what's next?
