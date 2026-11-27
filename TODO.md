@@ -17,6 +17,7 @@
 - [ ] ffprobe on choosing input file for copy video audio and check for audio is even exist???
 - [ ] fix progress window bug
 - [ ] edit csproj variable
+- [ ] migrate from 7zip to gzip
 - [ ] more user friendly i guess??
 
 # what's next?
