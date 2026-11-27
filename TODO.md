@@ -11,7 +11,12 @@
 - [x] check existing output
 - [x] make the compress button actually work
 - [x] FINNISH THIS GOSH DANG PROJECT
-- [ ] upload the build to github
+- [x] upload the build to github 
+
+# patch 1.1.0-alpha
+- [ ] ffprobe on choosing input file for copy video audio and check for audio is even exist???
+- [ ] fix progress window bug
+- [ ] more user friendly i guess??
 
 # what's next?
 - [ ] add choose audio track
