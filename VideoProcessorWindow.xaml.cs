@@ -375,7 +375,7 @@ namespace CsCompressor
                 string[] durationGettingAttmpt = ProcessAPI.Start(FFmpegAPI.ffprobePath!, $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{pathTB.Text}\"");
                 if (durationGettingAttmpt[1] != "0")
                 {
-                    MessageBoxAPI.Error("Something Went Wrong!!!\n" + durationGettingAttmpt[2]);
+                    MessageBoxAPI.Error("Something Went Wrong!!!\n" + durationGettingAttmpt[2], false);
                     return;
                 }
                 double realStartingTime = (double)QOL.StringToDouble(startSecond)! + ((double)QOL.StringToDouble(startMinute)! * 60) + ((double)QOL.StringToDouble(startHour)! * 3600);

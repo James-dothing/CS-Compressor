@@ -491,7 +491,10 @@ public class FFmpegArg
                             }
                         } else
                         {
-                            MessageBoxAPI.Debug("video bitrate value is NULL!\nproceeding the default value\n if you think this was a mistake, you can abort this and reconfig");
+                            if (!MessageBoxAPI.YesNo("Video bitrate is NULL!\nDo you want to proceeding the default value?\n"))
+                            {
+                                return null;
+                            }
                         }
                         break;
                     case videoRateControlTypes.VBR:
@@ -513,7 +516,10 @@ public class FFmpegArg
                             if (MaximumVideoBitrate!=null) {result+=" -maxrate "+MaximumVideoBitrate;}
                         } else
                         {
-                            MessageBoxAPI.Debug("video bitrate value is NULL!\nproceeding the default value\n if you think this was a mistake, you can abort this and reconfig");
+                            if (!MessageBoxAPI.YesNo("Video bitrate is NULL!\nDo you want to proceeding the default value?\n"))
+                            {
+                                return null;
+                            }
                         }
                         break;
                     case videoRateControlTypes.CQP:
@@ -545,7 +551,10 @@ public class FFmpegArg
                             }
                         } else
                         {
-                            MessageBoxAPI.Debug("CQP value is NULL!\nproceeding the default value\n if you think this was a mistake, you can abort this and reconfig");
+                            if (!MessageBoxAPI.YesNo("CQP value is NULL!\nDo you want to proceeding the default value?\n"))
+                            {
+                                return null;
+                            }
                         }
                         break;
                     case videoRateControlTypes.CQ:
@@ -575,7 +584,10 @@ public class FFmpegArg
                             }
                         } else
                         {
-                            MessageBoxAPI.Debug("CQ value is NULL!\nproceeding the default value\n if you think this was a mistake, you can abort this and reconfig");
+                            if (!MessageBoxAPI.YesNo("CQ value is NULL!\nDo you want to proceeding the default value?\n"))
+                            {
+                                return null;
+                            }
                         }
                         break;
                 }

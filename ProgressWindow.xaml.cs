@@ -1,4 +1,5 @@
 using System.Windows;
+using System.ComponentModel;
 
 namespace CsCompressor
 {
@@ -7,6 +8,10 @@ namespace CsCompressor
         public ProgressWindow()
         {
             InitializeComponent(); //
+        }
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            FFmpegAPI.AbortFFmpeg();
         }
 
         public async Task SetPercentageAsync(double percentage)
@@ -23,7 +28,7 @@ namespace CsCompressor
         }
         private void Abort(object sender, RoutedEventArgs e)
         {
-            FFmpegAPI.Abort();
+            FFmpegAPI.AbortFFmpeg();
             this.Close();
         }
     }

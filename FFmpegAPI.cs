@@ -8,10 +8,12 @@ public class FFmpegAPI
     public static String? ffmpegPath;
     public static String? ffprobePath;
     public static String[] availableVideoEncoders = {"libx264", "libx265", "libaom_av1", "libvpx", "libvpx_vp9","gif"};
-    public static Process currentRunningAsyncProcess = new Process() {};
+    public static Process? currentRunningAsyncProcess;
     public static VideoProcessingWindow? currentVIdeoProcessingWindow;
+    public static ProgressWindow? currentProgressWindow;
     public static async Task Start(string argument, bool noWindow, double dur)
     {
+        FFmpegAPI.AbortFFmpeg();
         try
         {
             Process? p = new Process();
@@ -24,8 +26,18 @@ public class FFmpegAPI
             p.Start();
             if (p==null) {return;}
             currentRunningAsyncProcess = (Process)p;
+            if (currentProgressWindow != null)
+            {
+                try
+                {
+
+                    currentProgressWindow.Close();
+                }
+                catch (InvalidOperationException) {}
+            }
             ProgressWindow progressWindow = new ProgressWindow() {};
             progressWindow.Show();
+            currentProgressWindow = progressWindow;
             while (true)
             {
                 string? line = await p.StandardOutput.ReadLineAsync();
@@ -43,20 +55,20 @@ public class FFmpegAPI
             }
             _ = progressWindow.SetPercentageAsync(100.0d);
             string err = await p.StandardError.ReadToEndAsync();
-            // string output = await p.StandardOutput.ReadToEndAsync();
             await p.WaitForExitAsync();
             int exitCode = p.ExitCode;
             if (exitCode != 0)
             {
-                MessageBoxAPI.Error($"the process did not exit correctly\nthis can either be the program aborted or some issue with the program\n{err}");
+                MessageBoxAPI.Error($"the process did not exit correctly\nthis can either be the program aborted or some issue with the program\n{err}", false);
             }
             return;
-        } catch (FileNotFoundException)
+        } catch (Exception e)
         {
+            MessageBoxAPI.Error(e.ToString());
             return;
         }
     }
-    public static void Abort()
+    public static void AbortFFmpeg()
     {
         if (currentRunningAsyncProcess != null && !currentRunningAsyncProcess.HasExited)
         {
@@ -64,7 +76,7 @@ public class FFmpegAPI
             {
                 currentRunningAsyncProcess.Kill();
             }
-            catch (InvalidOperationException) {}
+            catch (Exception e) {e.ToString();}
         }
     }
     public static void CheckFFmpeg()
@@ -89,7 +101,6 @@ public class FFmpegAPI
             string[] p = ProcessAPI.Start(ffmpegPath!, argString);
             if (p[1] == "0")
             {
-                // MessageBoxAPI.Debug(string.IsNullOrEmpty(p[2]) ? "empty" : p[2]);
                 availableVideoEncoders = [..availableVideoEncoders, encoder];
                 return true;
             } else

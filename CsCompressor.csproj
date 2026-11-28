@@ -13,6 +13,9 @@
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>frameworks\CSCompressor.ico</ApplicationIcon>
+    <Version>1.0.1-alpha</Version>
+    <Company>J-dothing</Company>
+    <Copyright>J-dothing</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
